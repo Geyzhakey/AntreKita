@@ -162,7 +162,7 @@
 
                     <form wire:submit="submitBooking" class="mt-4 space-y-3.5">
                         <div>
-                            <label class="block text-xs font-bold">Nama Pengguna / Kelompok</label>
+                            <label class="block text-xs font-bold">Nama Pengguna / K    elompok</label>
                             <input type="text" wire:model="group_name" required
                                 class="mt-1 w-full rounded-xl border border-[#D9D1BA] bg-[#EFEAD8]/60 px-3 py-2 text-sm outline-none focus:border-[#14452F] dark:border-[#27382F] dark:bg-[#1C2922]">
                             @error('group_name') <p class="mt-1 text-[11px] text-rose-600">{{ $message }}</p> @enderror
