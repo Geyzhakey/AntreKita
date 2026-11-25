@@ -1,11 +1,53 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/nframework/views/*.php';
+@source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-serif: 'Newsreader', Georgia, Cambria, serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+    --color-paper: #F3EFE2;
+    --color-linen: #FAF7EC;
+    --color-parchment: #EFEAD8;
+    --color-sand: #D9D1BA;
+    --color-sage: #CAFFA1;
+    --color-pine: #14452F;
+    --color-ink: #1A241E;
+}
+
+/* Warm Botanical Library Motif (Light) & Nocturnal Reading Room (Dark) */
+.bg-library-motif {
+    background-color: #F3EFE2;
+    background-image:
+        radial-gradient(at 10% 8%, rgba(202, 255, 161, 0.34) 0px, transparent 48%),
+        radial-gradient(at 92% 14%, rgba(184, 115, 51, 0.08) 0px, transparent 42%),
+        radial-gradient(at 80% 92%, rgba(202, 255, 161, 0.24) 0px, transparent 50%),
+        url("data:image/svg+xml,%3Csvg width='96' height='96' viewBox='0 0 96 96' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%2314452F' stroke-opacity='0.055' stroke-width='1'%3E%3Cpath d='M48 12c-8 10-8 22 0 32 8-10 8-22 0-32z'/%3E%3Cpath d='M12 48c10-8 22-8 32 0-10 8-22 8-32 0z'/%3E%3Cpath d='M84 48c-10-8-22-8-32 0 10 8 22 8 32 0z'/%3E%3Cpath d='M48 84c-8-10-8-22 0-32 8 10 8 22 0 32z'/%3E%3Ccircle cx='48' cy='48' r='3.5'/%3E%3Cpath d='M18 18c4 4 8 4 12 0M66 18c4 4 8 4 12 0M18 78c4-4 8-4 12 0M66 78c4-4 8-4 12 0' stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+.dark .bg-library-motif {
+    background-color: #0E1411;
+    background-image:
+        radial-gradient(at 12% 10%, rgba(202, 255, 161, 0.08) 0px, transparent 48%),
+        radial-gradient(at 88% 18%, rgba(217, 155, 82, 0.07) 0px, transparent 44%),
+        radial-gradient(at 80% 92%, rgba(27, 94, 58, 0.16) 0px, transparent 52%),
+        url("data:image/svg+xml,%3Csvg width='96' height='96' viewBox='0 0 96 96' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23CAFFA1' stroke-opacity='0.045' stroke-width='1'%3E%3Cpath d='M48 12c-8 10-8 22 0 32 8-10 8-22 0-32z'/%3E%3Cpath d='M12 48c10-8 22-8 32 0-10 8-22 8-32 0z'/%3E%3Cpath d='M84 48c-10-8-22-8-32 0 10 8 22 8 32 0z'/%3E%3Cpath d='M48 84c-8-10-8-22 0-32 8 10 8 22 0 32z'/%3E%3Ccircle cx='48' cy='48' r='3.5'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+.paper-card {
+    background-color: #FAF7EC;
+    border: 1px solid #D9D1BA;
+    box-shadow: 0 14px 34px -18px rgba(20, 69, 47, 0.16), 0 1px 0 rgba(255, 255, 255, 0.45) inset;
+}
+
+.dark .paper-card {
+    background-color: #151F1A;
+    border-color: #27382F;
+    box-shadow: 0 18px 36px -18px rgba(0, 0, 0, 0.55);
 }

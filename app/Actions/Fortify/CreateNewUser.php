@@ -2,6 +2,7 @@
 
 namespace App\Actions\Fortify;
 
+use App\Models\InstitutionWhitelist;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -22,7 +23,14 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
-        Validator::make($input, [
+        $normalizedWa = User::normalizeWhatsapp($input['whatsapp_number'] ?? '');
+
+        $data = array_merge($input, [
+            'email' => strtolower(trim($input['email'] ?? '')),
+            'whatsapp_number' => $normalizedWa,
+        ]);
+
+        Validator::make($data, [
             'name' => ['required', 'string', 'max:255'],
             'email' => [
                 'required',
@@ -31,13 +39,29 @@ class CreateNewUser implements CreatesNewUsers
                 'max:255',
                 Rule::unique(User::class),
             ],
+            'whatsapp_number' => [
+                'required',
+                'string',
+                'regex:/^\+62[0-9]{8,14}$/',
+                Rule::unique(User::class, 'whatsapp_number'),
+            ],
             'password' => $this->passwordRules(),
+        ], [
+            'whatsapp_number.regex' => 'Nomor WhatsApp harus aktif dengan format +628... atau 08... (8-14 digit).',
+            'whatsapp_number.unique' => 'Nomor WhatsApp ini sudah terdaftar di sistem AntreKita.',
         ])->validate();
 
+        $whitelist = InstitutionWhitelist::where('email', $data['email'])
+            ->where('status', 'approved')
+            ->first();
+
         return User::create([
-            'name' => $input['name'],
-            'email' => $input['email'],
-            'password' => Hash::make($input['password']),
+            'name' => trim($data['name']),
+            'email' => $data['email'],
+            'whatsapp_number' => $data['whatsapp_number'],
+            'role' => $whitelist ? 'admin' : 'visitor',
+            'is_verified_admin' => (bool) $whitelist,
+            'password' => Hash::make($data['password']),
         ]);
     }
 }

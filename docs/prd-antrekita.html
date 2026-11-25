@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Product Requirement Document (PRD) — AntreKita v2.0</title>
+<style>
+  @page {
+    size: A4 portrait;
+    margin: 18mm 16mm 18mm 16mm;
+    @bottom-right {
+      content: counter(page);
+    }
+  }
+  
+  * {
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #0f172a;
+    background-color: #ffffff;
+    line-height: 1.5;
+    font-size: 10pt;
+    margin: 0;
+    padding: 0;
+  }
+
+  .page {
+    page-break-after: always;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .page:last-child {
+    page-break-after: avoid;
+  }
+
+  /* Typography */
+  h1 { font-size: 20pt; font-weight: 800; color: #1e1b4b; margin: 0 0 6px 0; letter-spacing: -0.5px; }
+  h2 { font-size: 13pt; font-weight: 700; color: #312e81; margin: 18px 0 8px 0; border-bottom: 2px solid #e0e7ff; padding-bottom: 4px; }
+  h3 { font-size: 10.5pt; font-weight: 700; color: #1e293b; margin: 12px 0 4px 0; }
+  p { margin: 0 0 8px 0; color: #334155; text-align: justify; }
+
+  /* Header Badge */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    font-size: 8pt;
+    font-weight: 700;
+    border-radius: 9999px;
+    background-color: #e0e7ff;
+    color: #4338ca;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+
+  .meta-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    font-size: 8.5pt;
+  }
+  .meta-item strong { color: #1e293b; display: inline-block; width: 110px; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 14px 0;
+    font-size: 8.5pt;
+  }
+  th {
+    background-color: #4338ca;
+    color: #ffffff;
+    font-weight: 600;
+    text-align: left;
+    padding: 6px 8px;
+    border: 1px solid #4338ca;
+  }
+  td {
+    padding: 6px 8px;
+    border: 1px solid #cbd5e1;
+    color: #1e293b;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background-color: #f8fafc; }
+
+  /* Callout Boxes */
+  .callout {
+    border-left: 4px solid #4338ca;
+    background: #eef2ff;
+    padding: 10px 12px;
+    border-radius: 0 8px 8px 0;
+    margin: 10px 0;
+    font-size: 9pt;
+  }
+  .callout-title { font-weight: 700; color: #312e81; margin-bottom: 3px; }
+
+  .callout-success {
+    border-left-color: #10b981;
+    background: #ecfdf5;
+  }
+  .callout-success .callout-title { color: #065f46; }
+
+  .callout-warning {
+    border-left-color: #f59e0b;
+    background: #fffbeb;
+  }
+  .callout-warning .callout-title { color: #92400e; }
+
+  /* Diagram Flow Nodes */
+  .flow-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 12px 0;
+  }
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 12px;
+  }
+  .flow-num {
+    background: #4338ca;
+    color: white;
+    font-weight: 800;
+    border-radius: 6px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9pt;
+    flex-shrink: 0;
+  }
+  .flow-content { flex: 1; }
+  .flow-title { font-weight: 700; font-size: 9pt; color: #0f172a; }
+  .flow-desc { font-size: 8pt; color: #475569; margin-top: 2px; }
+
+  /* 4 Pillars Grid */
+  .grid-4 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin: 10px 0;
+  }
+  .pillar-card {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 10px;
+    background: #ffffff;
+  }
+  .pillar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    border-bottom: 1px dashed #e2e8f0;
+    padding-bottom: 4px;
+  }
+  .pillar-name { font-weight: 700; font-size: 9.5pt; color: #1e1b4b; }
+  .pillar-role { font-size: 7.5pt; font-weight: 700; color: #4338ca; background: #e0e7ff; padding: 2px 6px; border-radius: 4px; }
+  .pillar-desc { font-size: 8pt; color: #475569; }
+
+  .footer-note {
+    font-size: 7.5pt;
+    color: #94a3b8;
+    text-align: center;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 8px;
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= PAGE 1 ================= -->
+<div class="page">
+  <div>
+    <div class="badge">GDGoC ITB Stack 2026 &bull; Semifinal Stage &bull; Case 2: Stronger Communities</div>
+    <h1>Product Requirement Document (PRD) v2.0</h1>
+    <h3 style="color: #4338ca; font-weight: 600; margin-top: -2px; margin-bottom: 12px;">AntreKita: Smart Spatial Queue &amp; Multi-Facility Access Platform</h3>
+
+    <div class="meta-box">
+      <div class="meta-item"><strong>Nama Proyek:</strong> AntreKita</div>
+      <div class="meta-item"><strong>Kategori:</strong> Stronger Communities &amp; Everyday Services</div>
+      <div class="meta-item"><strong>Tim Pengembang:</strong> Antek_Antek_ITB</div>
+      <div class="meta-item"><strong>Anggota:</strong> Dandy Aulia (Lead), Geyzha Keyriz, Alif Fhatur</div>
+      <div class="meta-item"><strong>Status Sistem:</strong> Production-Ready MVP (Laravel 12 + Livewire 4)</div>
+      <div class="meta-item"><strong>Tanggal:</strong> November 2026</div>
+    </div>
+
+    <h2>1. Analisis Komprehensif 5W + 1H AntreKita</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 18%;">Elemen</th>
+          <th style="width: 82%;">Uraian Strategis &amp; Implementasi Nyata</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>WHAT (Apa)</strong></td>
+          <td>Platform web pemetaan spasial interaktif dan manajemen antrean real-time berbasis unit fisik mikro (hingga level kursi, meja indoor/outdoor, dan ruang kelompok) dengan akurasi menit presisi tanpa overbooking.</td>
+        </tr>
+        <tr>
+          <td><strong>WHY (Mengapa)</strong></td>
+          <td>Fenomena "Kecelé" (76% mahasiswa/pengunjung mendatangi fasilitas umum dalam kondisi penuh) serta tingginya monopoli tempat duduk (kursi ditandai tas tanpa ada orang) akibat ketiadaan visibilitas status waktu nyata dan checkout fisik.</td>
+        </tr>
+        <tr>
+          <td><strong>WHO (Siapa)</strong></td>
+          <td><strong>4 Aktor:</strong> Developer (Platform Verifier), Administrator Fasilitas (Perpustakaan UI, PUT PNJ, ITB Library, Coworking), User/Visitor (Komunitas Pelajar &amp; Profesional), dan Sistem Otomatis AntreKita (Informant Engine).</td>
+        </tr>
+        <tr>
+          <td><strong>WHERE (Dimana)</strong></td>
+          <td>Fasilitas akademik, perpustakaan daerah, ruang belajar bersama (study hub), dan co-working space komunitas multi-kota yang membutuhkan alokasi sumber daya transparan.</td>
+        </tr>
+        <tr>
+          <td><strong>WHEN (Kapan)</strong></td>
+          <td>Diakses secara kontinu: sebelum pengguna berangkat (cek ketersediaan), saat reservasi menit presisi, H-5 menit sebelum masa aktif usai (dual trigger alert), dan saat serah-terima unit.</td>
+        </tr>
+        <tr>
+          <td><strong>HOW (Bagaimana)</strong></td>
+          <td>Mengkombinasikan denah interaktif, aturan 1-Akun-1-Booking, sinkronisasi WA Gateway &amp; Email H-5 otomatis, serta interaksi validasi kebersihan fisik melalui <em>Interactive Slide-to-Finish</em>.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>2. Ekosistem 4 Pilar Arsitektur AntreKita</h2>
+    <div class="grid-4">
+      <div class="pillar-card">
+        <div class="pillar-header">
+          <span class="pillar-name">1. Developer</span>
+          <span class="pillar-role">Platform Verifier</span>
+        </div>
+        <div class="pillar-desc">
+          Mengontrol whitelist email resmi administrator instansi (contoh: <code>perpustakaanui1@gmail.ac.id</code>, <code>put.pnj@pnj.ac.id</code>) untuk mencegah instansi bodong atau manipulasi lokasi.
+        </div>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-header">
+          <span class="pillar-name">2. Administrator</span>
+          <span class="pillar-role">Facility Controller</span>
+        </div>
+        <div class="pillar-desc">
+          Memetakan zona (Ruang Kelompok, Meja Indoor, Meja Outdoor), menetapkan kapasitas kursi dan batas durasi maksimal (180 menit), serta memantau status live [Available] vs [In Used].
+        </div>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-header">
+          <span class="pillar-name">3. Sistem AntreKita</span>
+          <span class="pillar-role">The Informant Engine</span>
+        </div>
+        <div class="pillar-desc">
+          Menjamin strict lock (1 Akun/WA = 1 Booking), kalkulasi timer presisi detik, pengiriman dual trigger WA/Email pada H-5 menit sebelum berakhir, dan auto-cascade antrean waiting list.
+        </div>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-header">
+          <span class="pillar-name">4. Visitor / User</span>
+          <span class="pillar-role">Community Member</span>
+        </div>
+        <div class="pillar-desc">
+          Cari fasilitas multi-instansi, memilih spesifik unit di floor-map visual, booking menit presisi, estimasi countdown, dan mengakhiri sesi via checklist etika &amp; gestur Slide to Finish.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer-note">AntreKita PRD v2.0 &bull; Halaman 1 dari 2 &bull; Dokumen Spesifikasi Resmi GDGoC ITB Stack 2026</div>
+</div>
+
+<!-- ================= PAGE 2 ================= -->
+<div class="page">
+  <div>
+    <h2>3. Alur Kerja Sistem End-to-End (Workflows)</h2>
+    
+    <div class="flow-container">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-content">
+          <div class="flow-title">Verifikasi Whitelist Administrator (Developer &rarr; Admin)</div>
+          <div class="flow-desc">Developer menyetujui domain/email instansi resmi. Instansi login dan memetakan unit (Ruang01-Ruang03, Meja01-Meja05 Indoor, Meja06-Meja10 Outdoor).</div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-content">
+          <div class="flow-title">Pencarian &amp; Seleksi Unit Spasial (Visitor &rarr; Spatial Floor Map)</div>
+          <div class="flow-desc">Pengguna login (Email + WA aktif). Sistem memvalidasi aturan anti-monopoli. Jika unit <strong>[Available]</strong> (hijau), pengguna reservasi presisi menit (misal: 13:08 - 14:52).</div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div class="flow-content">
+          <div class="flow-title">Mekanisme Waiting List Transparan (User 02)</div>
+          <div class="flow-desc">Jika unit <strong>[In Used]</strong> (merah), User 02 otomatis disuguhkan countdown waktu sisa pengguna aktif dan dapat memesan slot langsung setelahnya (status: <em>Waiting List</em>).</div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div class="flow-content">
+          <div class="flow-title">Dual Notification H-5 Menit (Informant Engine &rarr; WA &amp; Email)</div>
+          <div class="flow-desc">Saat sesi sisa 5 menit, sistem serentak mengirim pesan ke <strong>User 01</strong> (peringatan beres-beres meja) dan ke <strong>User 02</strong> (peringatan bersiap ke lokasi unit).</div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-num">5</div>
+        <div class="flow-content">
+          <div class="flow-title">Checklist Etika Kebersihan &amp; Slide-to-Finish Handover</div>
+          <div class="flow-desc">User 01 mencentang 3 item kebersihan lalu menggeser slider interaktif. Unit otomatis berpindah hak pakai menjadi aktif untuk User 02 (atau [Available] jika antrean kosong).</div>
+        </div>
+      </div>
+    </div>
+
+    <h2>4. Matriks Perbandingan Keunggulan AntreKita</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Dimensi Pembanding</th>
+          <th>Buku Tamu / Manual</th>
+          <th>Mesin Antrean (Qmatic)</th>
+          <th>Google Calendar</th>
+          <th>AntreKita v2.0</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Objek Kelola</strong></td>
+          <td>Teks bebas tanpa denah</td>
+          <td>Loket 1 arah</td>
+          <td>Hanya ruangan besar</td>
+          <td><strong>Granular (Meja, Kursi, Ruangan)</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Presisi Waktu</strong></td>
+          <td>Tidak terukur</td>
+          <td>Estimasi kasar</td>
+          <td>Blok kaku 30/60 menit</td>
+          <td><strong>Presisi menit (13:08 - 14:52)</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Notifikasi</strong></td>
+          <td>Nihil</td>
+          <td>Layar TV / Panggilan</td>
+          <td>Email kalender</td>
+          <td><strong>Otomatis WhatsApp + Email</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Handover Transisi</strong></td>
+          <td>Sering bentrok / sengketa</td>
+          <td>Antrean putus jika lewat</td>
+          <td>Tidak ada pengingat keluar</td>
+          <td><strong>Dual Trigger H-5 Menit Serentak</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Pencegahan Monopoli</strong></td>
+          <td>Sangat lemah</td>
+          <td>Tidak relevan</td>
+          <td>Bisa booking banyak slot</td>
+          <td><strong>Strict Lock: 1 Akun/WA = 1 Unit</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Checkout Etika</strong></td>
+          <td>Lapor lisan (jarang)</td>
+          <td>Otomatis cut-off</td>
+          <td>Nihil konfirmasi</td>
+          <td><strong>Checklist + Gestur Slide-to-Finish</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>5. Spesifikasi Teknis &amp; Standar Desain Sistem</h2>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+      <div class="callout callout-success" style="margin: 0;">
+        <div class="callout-title">Teknologi Backend &amp; Integritas Data</div>
+        <div style="font-size: 8pt; color: #334155;">
+          &bull; <strong>Framework:</strong> Laravel 12 &amp; PHP 8.3<br>
+          &bull; <strong>Real-Time Engine:</strong> Livewire 4 &amp; Alpine.js<br>
+          &bull; <strong>Data Concurrency:</strong> Database Row-Level Locking (<code>lockForUpdate</code>) menjamin zero double-booking.<br>
+          &bull; <strong>Scheduled Informant:</strong> Cron scheduler 60 detik mendeteksi jendela pre-expiry H-5.
+        </div>
+      </div>
+
+      <div class="callout" style="margin: 0;">
+        <div class="callout-title">Sistem Visual &amp; Palet Semantik</div>
+        <div style="font-size: 8pt; color: #334155;">
+          &bull; <strong>Primary Brand:</strong> <code>#4F46E5</code> (Indigo 600 - Keteraturan)<br>
+          &bull; <strong>Status [Available]:</strong> <code>#10B981</code> (Emerald 500 - Siap Pakai)<br>
+          &bull; <strong>Status [In Used]:</strong> <code>#F43F5E</code> (Rose 500 - Sedang Digunakan)<br>
+          &bull; <strong>Peringatan H-5 / Waiting:</strong> <code>#F59E0B</code> (Amber 500)<br>
+          &bull; <strong>WhatsApp Channel:</strong> <code>#25D366</code> (Live Toast Simulator)
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer-note">AntreKita PRD v2.0 &bull; Halaman 2 dari 2 &bull; Hak Cipta &copy; 2026 Tim Antek_Antek_ITB</div>
+</div>
+
+</body>
+</html>
