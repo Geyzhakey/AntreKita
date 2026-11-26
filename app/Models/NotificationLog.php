@@ -14,6 +14,8 @@ class NotificationLog extends Model
         'recipient',
         'trigger_type',
         'message',
+        'status',
+        'error_message',
         'sent_at',
     ];
 
