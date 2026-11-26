@@ -21,6 +21,7 @@ class Institution extends Model
         'is_active',
         'map_cols',
         'map_rows',
+        'has_custom_floorplan',
     ];
 
     protected function casts(): array
@@ -29,6 +30,7 @@ class Institution extends Model
             'is_active' => 'boolean',
             'map_cols' => 'integer',
             'map_rows' => 'integer',
+            'has_custom_floorplan' => 'boolean',
         ];
     }
 
@@ -39,7 +41,11 @@ class Institution extends Model
 
     public function facilityUnits(): HasMany
     {
-        return $this->hasMany(FacilityUnit::class)->orderBy('pos_y')->orderBy('pos_x')->orderBy('sort_order');
+        return $this->hasMany(FacilityUnit::class)
+            ->orderBy('floor')
+            ->orderBy('pos_y')
+            ->orderBy('pos_x')
+            ->orderBy('sort_order');
     }
 
     public function bookings(): HasMany

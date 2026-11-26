@@ -15,6 +15,8 @@ class LiveMonitorPage extends Component
 {
     public ?Institution $institution = null;
 
+    public string $floorFilter = 'all';
+
     public function mount(): void
     {
         $user = Auth::user();
@@ -43,16 +45,22 @@ class LiveMonitorPage extends Component
 
     public function render()
     {
-        $units = $this->institution
+        $allUnits = $this->institution
             ? $this->institution->facilityUnits()
                 ->with(['activeBooking.user', 'waitingBookings.user'])
                 ->where('is_active', true)
                 ->get()
             : collect();
 
-        $activeCount = $units->filter(fn (FacilityUnit $u) => $u->activeBooking !== null)->count();
-        $availableCount = $units->count() - $activeCount;
-        $waitingTotal = $units->sum(fn (FacilityUnit $u) => $u->waitingBookings->count());
+        $floors = $allUnits->pluck('floor')->unique()->sort()->values();
+
+        $units = $this->floorFilter === 'all'
+            ? $allUnits
+            : $allUnits->where('floor', (int) $this->floorFilter)->values();
+
+        $activeCount = $allUnits->filter(fn (FacilityUnit $u) => $u->activeBooking !== null)->count();
+        $availableCount = $allUnits->count() - $activeCount;
+        $waitingTotal = $allUnits->sum(fn (FacilityUnit $u) => $u->waitingBookings->count());
 
         $activeBookings = $this->institution
             ? Booking::with(['facilityUnit', 'user'])
@@ -66,7 +74,8 @@ class LiveMonitorPage extends Component
         return view('livewire.admin.live-monitor-page', [
             'unitsByZone' => $units->groupBy('zone'),
             'zones' => FacilityUnit::ZONES,
-            'totalUnits' => $units->count(),
+            'floors' => $floors,
+            'totalUnits' => $allUnits->count(),
             'availableCount' => $availableCount,
             'activeCount' => $activeCount,
             'waitingTotal' => $waitingTotal,

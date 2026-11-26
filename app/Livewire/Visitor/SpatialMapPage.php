@@ -18,6 +18,10 @@ class SpatialMapPage extends Component
 
     public string $viewMode = 'map'; // map | list
 
+    public int $activeFloor = 1;
+
+    public string $seatTypeFilter = 'all'; // all | L | S | H | F | SOFA | ROOM
+
     public string $zoneFilter = 'all';
 
     public string $statusFilter = 'all';
@@ -38,6 +42,21 @@ class SpatialMapPage extends Component
     {
         $this->institution = $institution;
         $this->group_name = Auth::user()?->name ?? '';
+
+        $firstFloor = $institution->facilityUnits()
+            ->where('is_active', true)
+            ->min('floor');
+        $this->activeFloor = $firstFloor ? (int) $firstFloor : 1;
+    }
+
+    public function setFloor(int $floor): void
+    {
+        $this->activeFloor = $floor;
+    }
+
+    public function setSeatTypeFilter(string $seatType): void
+    {
+        $this->seatTypeFilter = $seatType;
     }
 
     public function selectUnit(int $unitId): void
@@ -50,7 +69,10 @@ class SpatialMapPage extends Component
             ->findOrFail($unitId);
 
         $this->selectedUnitId = $unit->id;
-        $this->people_count = $unit->zone === 'group_room' ? min(3, $unit->capacity) : 1;
+        $this->activeFloor = $unit->floor ?? 1;
+        $this->people_count = ($unit->zone === 'group_room' || $unit->seat_type === 'ROOM')
+            ? min(3, $unit->capacity)
+            : 1;
 
         $active = $unit->activeBooking;
         $lastWaiting = $unit->waitingBookings->sortByDesc('ends_at')->first();
@@ -63,6 +85,13 @@ class SpatialMapPage extends Component
 
         $this->start_time = $suggestedStart->format('H:i');
         $this->end_time = $suggestedEnd->format('H:i');
+    }
+
+    public function clearSelection(): void
+    {
+        $this->selectedUnitId = null;
+        $this->bookingError = '';
+        $this->resetValidation();
     }
 
     public function submitBooking(BookingRuleEngine $engine): void
@@ -131,7 +160,28 @@ class SpatialMapPage extends Component
             ->where('is_active', true)
             ->get();
 
-        $filteredUnits = $allUnits->filter(function (FacilityUnit $unit) {
+        $availableFloors = $allUnits->pluck('floor')->unique()->sort()->values();
+        if ($availableFloors->isNotEmpty() && ! $availableFloors->contains($this->activeFloor)) {
+            $this->activeFloor = (int) $availableFloors->first();
+        }
+
+        $floorStats = [];
+        foreach ($availableFloors as $floor) {
+            $unitsOnFloor = $allUnits->where('floor', $floor);
+            $occupied = $unitsOnFloor->filter(fn (FacilityUnit $u) => $u->activeBooking !== null)->count();
+            $floorStats[$floor] = [
+                'total' => $unitsOnFloor->count(),
+                'occupied' => $occupied,
+                'available' => max(0, $unitsOnFloor->count() - $occupied),
+            ];
+        }
+
+        $floorUnits = $allUnits->where('floor', $this->activeFloor)->values();
+
+        $matchingUnits = $floorUnits->filter(function (FacilityUnit $unit) {
+            if ($this->seatTypeFilter !== 'all' && $unit->seat_type !== $this->seatTypeFilter) {
+                return false;
+            }
             if ($this->zoneFilter !== 'all' && $unit->zone !== $this->zoneFilter) {
                 return false;
             }
@@ -145,20 +195,26 @@ class SpatialMapPage extends Component
             return true;
         });
 
-        $gridMap = $filteredUnits->keyBy(fn (FacilityUnit $u) => "{$u->pos_x},{$u->pos_y}");
-        $maxRow = max($this->institution->map_rows ?? 4, (int) ($allUnits->max('pos_y') ?? 4));
-        $maxCol = max($this->institution->map_cols ?? 6, (int) ($allUnits->max('pos_x') ?? 6));
+        $matchingUnitIds = $matchingUnits->pluck('id')->all();
+        $gridMap = $matchingUnits->keyBy(fn (FacilityUnit $u) => "{$u->pos_x},{$u->pos_y}");
+        $maxRow = max($this->institution->map_rows ?? 4, (int) ($floorUnits->max('pos_y') ?? 4));
+        $maxCol = max($this->institution->map_cols ?? 6, (int) ($floorUnits->max('pos_x') ?? 6));
 
         $selectedUnit = $this->selectedUnitId
             ? FacilityUnit::with(['activeBooking.user', 'waitingBookings.user'])->find($this->selectedUnitId)
             : null;
 
         return view('livewire.visitor.spatial-map-page', [
-            'unitsByZone' => $filteredUnits->groupBy('zone'),
+            'unitsByZone' => $matchingUnits->groupBy('zone'),
+            'floorUnits' => $floorUnits,
+            'matchingUnitIds' => $matchingUnitIds,
+            'availableFloors' => $availableFloors,
+            'floorStats' => $floorStats,
             'gridMap' => $gridMap,
             'maxCol' => $maxCol,
             'maxRow' => $maxRow,
             'zones' => FacilityUnit::ZONES,
+            'seatTypes' => FacilityUnit::SEAT_TYPES,
             'selectedUnit' => $selectedUnit,
             'userActiveBooking' => $userActiveBooking,
         ]);

@@ -1,69 +1,65 @@
-<div class="mx-auto max-w-4xl py-8">
+<div class="mx-auto max-w-4xl py-10">
     <div class="text-center">
-        <span class="inline-flex items-center gap-2 rounded-full border border-[#14452F]/20 bg-[#CAFFA1] px-3.5 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-[#1A241E]">
+        <span class="inline-flex items-center gap-2 rounded-full border border-[#0F6E56]/20 bg-[#90DEC3]/55 px-3.5 py-1 font-mono text-[10px] font-bold uppercase tracking-widest text-[#0E241E] dark:border-[#90DEC3]/25 dark:bg-[#192825] dark:text-[#90DEC3]">
             Portal Akses AntreKita
         </span>
-        <h1 class="mt-3 font-serif text-3xl font-bold tracking-tight sm:text-4xl">
+        <h1 class="mt-3 text-3xl font-extrabold tracking-[-0.025em] sm:text-4xl">
             Pilih Jalur Masuk Anda
         </h1>
-        <p class="mt-1.5 text-xs text-[#4E5C52] dark:text-[#B5C4B6]">
-            AntreKita memisahkan akses pengunjung ruang baca dengan portal pengelola gedung / instansi.
+        <p class="mt-1.5 text-xs text-[#47625A] dark:text-[#98B4AC]">
+            Akses terpisah antara pengunjung ruang belajar dan administrator pengelola gedung.
         </p>
     </div>
 
-    <div class="mt-8 grid gap-6 md:grid-cols-2">
-        <div class="paper-card flex flex-col justify-between rounded-3xl p-7 transition hover:border-[#14452F] dark:hover:border-[#CAFFA1]">
+    <div class="mt-8 grid gap-5 md:grid-cols-2">
+        <div class="surface-card flex flex-col justify-between rounded-2xl border-t-4 border-t-[#90DEC3] p-7">
             <div>
                 <div class="flex items-center justify-between">
-                    <span class="rounded-lg bg-[#CAFFA1] px-2.5 py-1 font-mono text-[11px] font-bold text-[#1A241E]">VISITOR / PENGGUNA</span>
-                    <svg class="h-6 w-6 text-[#14452F] dark:text-[#CAFFA1]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                        <circle cx="12" cy="7" r="4" />
-                    </svg>
+                    <span class="rounded-md bg-[#90DEC3]/65 px-2.5 py-1 font-mono text-[10px] font-bold text-[#0E241E] dark:bg-[#90DEC3]/20 dark:text-[#90DEC3]">VISITOR / UMUM</span>
+                    <span class="surface-subtle flex h-10 w-10 items-center justify-center rounded-xl text-[#0F6E56] dark:text-[#90DEC3]">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                        </svg>
+                    </span>
                 </div>
-                <h2 class="mt-5 font-serif text-2xl font-bold">Sign In / Up as Visitor</h2>
-                <p class="mt-2 text-xs leading-relaxed text-[#4E5C52] dark:text-[#B5C4B6]">
-                    Untuk mahasiswa, pelajar, atau pengunjung umum yang ingin melihat peta ketersediaan meja/ruangan secara live dan memesan slot waktu.
+                <h2 class="mt-5 text-2xl font-bold tracking-tight">Sign In / Up as Visitor</h2>
+                <p class="mt-2 text-xs leading-relaxed text-[#47625A] dark:text-[#98B4AC]">
+                    Terbuka bagi mahasiswa dari kampus mana pun dan pengunjung umum untuk melihat denah 2D dan memesan slot waktu.
                 </p>
-                <ul class="mt-4 space-y-1.5 text-xs text-[#4E5C52] dark:text-[#B5C4B6]">
-                    <li>&bull; Login via Nama Pengguna, Email, atau Nomor Telepon</li>
-                    <li>&bull; Pendaftaran langsung aktif dengan WhatsApp</li>
-                </ul>
             </div>
 
             <div class="mt-7 grid grid-cols-2 gap-3">
                 <a href="{{ route('login.visitor') }}" wire:navigate
-                    class="rounded-xl bg-[#14452F] px-4 py-2.5 text-center text-xs font-bold text-[#CAFFA1] transition hover:bg-[#0F3524] dark:bg-[#CAFFA1] dark:text-[#1A241E]">
+                    class="btn-brand rounded-lg px-4 py-2.5 text-center text-xs font-semibold shadow-xs">
                     Sign In Visitor
                 </a>
                 <a href="{{ route('register.visitor') }}" wire:navigate
-                    class="rounded-xl border border-[#D9D1BA] bg-[#EFEAD8] px-4 py-2.5 text-center text-xs font-bold transition hover:border-[#14452F] dark:border-[#27382F] dark:bg-[#1C2922]">
+                    class="surface-subtle rounded-lg px-4 py-2.5 text-center text-xs font-semibold transition hover:border-[#0F6E56]/40 dark:hover:border-[#90DEC3]/40">
                     Daftar Baru
                 </a>
             </div>
         </div>
 
-        <div class="paper-card flex flex-col justify-between rounded-3xl p-7 transition hover:border-[#14452F] dark:hover:border-[#CAFFA1]">
+        <div class="surface-card flex flex-col justify-between rounded-2xl border-t-4 border-t-[#0F6E56] p-7 dark:border-t-[#54C2A0]">
             <div>
                 <div class="flex items-center justify-between">
-                    <span class="rounded-lg border border-[#D9D1BA] bg-[#EFEAD8] px-2.5 py-1 font-mono text-[11px] font-bold dark:border-[#27382F] dark:bg-[#1C2922] dark:text-[#CAFFA1]">ADMINISTRATOR INSTANSI</span>
-                    <svg class="h-6 w-6 text-[#14452F] dark:text-[#CAFFA1]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                        <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
+                    <span class="surface-subtle rounded-md px-2.5 py-1 font-mono text-[10px] font-bold text-[#0F6E56] dark:text-[#90DEC3]">ADMINISTRATOR GEDUNG</span>
+                    <span class="surface-subtle flex h-10 w-10 items-center justify-center rounded-xl text-[#0F6E56] dark:text-[#90DEC3]">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                            <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </span>
                 </div>
-                <h2 class="mt-5 font-serif text-2xl font-bold">Sign In as Administrator</h2>
-                <p class="mt-2 text-xs leading-relaxed text-[#4E5C52] dark:text-[#B5C4B6]">
-                    Khusus pengelola perpustakaan, gedung layanan kampus, atau pengawas fasilitas yang telah memiliki Kode Daftar resmi gedung.
+                <h2 class="mt-5 text-2xl font-bold tracking-tight">Sign In as Administrator</h2>
+                <p class="mt-2 text-xs leading-relaxed text-[#47625A] dark:text-[#98B4AC]">
+                    Khusus pengelola fasilitas atau perpustakaan yang memiliki Nama Instansi dan Kode Daftar resmi gedung.
                 </p>
-                <ul class="mt-4 space-y-1.5 text-xs text-[#4E5C52] dark:text-[#B5C4B6]">
-                    <li>&bull; Masuk menggunakan Nama Instansi + Kode Daftar + Password</li>
-                    <li>&bull; Pendaftaran pengelola baru langsung terhubung ke WhatsApp layanan AntreKita</li>
-                </ul>
             </div>
 
             <div class="mt-7">
                 <a href="{{ route('login.admin') }}" wire:navigate
-                    class="block w-full rounded-xl bg-[#1A241E] px-4 py-2.5 text-center text-xs font-bold text-[#CAFFA1] transition hover:opacity-90 dark:bg-[#CAFFA1] dark:text-[#1A241E]">
+                    class="block w-full rounded-lg bg-[#0E241E] px-4 py-2.5 text-center text-xs font-semibold text-[#90DEC3] transition hover:opacity-90 dark:bg-[#90DEC3] dark:text-[#0B1F19]">
                     Masuk sebagai Administrator &rarr;
                 </a>
             </div>

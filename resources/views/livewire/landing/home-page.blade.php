@@ -1,176 +1,146 @@
-<div class="space-y-8">
-    <!-- Editorial Hero + Live Spatial Preview -->
-    <section class="paper-card relative overflow-hidden rounded-3xl p-6 sm:p-10">
-        <!-- Subtle Library Bookmark Ribbon -->
-        <div class="pointer-events-none absolute top-0 right-10 hidden h-14 w-9 flex-col items-center justify-end bg-[#CAFFA1] pb-2 text-[#14452F] shadow-xs sm:flex"
-            style="clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);">
-            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 3v18M3 12h18" stroke-linecap="round" />
-            </svg>
-        </div>
+@php
+    $availabilityPct = $totalUnits > 0 ? round(($availableUnits / $totalUnits) * 100) : 100;
+@endphp
 
-        <div class="grid gap-8 lg:grid-cols-12 lg:items-center">
-            <div class="lg:col-span-7">
-                <span class="inline-flex items-center gap-2 rounded-full border border-[#14452F]/20 bg-[#CAFFA1] px-3.5 py-1 font-mono text-[11px] font-bold tracking-wide text-[#1A241E]">
-                    <span class="h-2 w-2 rounded-full bg-[#14452F]"></span>
-                    EKOSISTEM PERPUSTAKAAN &amp; RUANG BACA CERDAS
-                </span>
+<div class="space-y-14 pb-8">
+    <!-- Clean Minimalist Hero -->
+    <section class="grid gap-10 pt-2 lg:grid-cols-12 lg:items-center">
+        <div class="lg:col-span-7">
+            <span class="inline-flex items-center gap-2 rounded-full border border-[#0F6E56]/20 bg-[#90DEC3]/45 px-3.5 py-1 text-[11px] font-semibold text-[#0E241E] dark:border-[#90DEC3]/25 dark:bg-[#192825] dark:text-[#90DEC3]">
+                <span class="h-1.5 w-1.5 rounded-full bg-[#0F6E56] dark:bg-[#90DEC3]"></span>
+                Terbuka untuk Kampus &amp; Publik &middot; Tanpa Aplikasi
+            </span>
 
-                <h1 class="mt-4 font-serif text-3xl leading-[1.15] font-bold tracking-tight sm:text-5xl">
-                    Temukan Kursi &amp; Ruang Diskusi Sebelum Anda Melangkah.
-                </h1>
+            <h1 class="mt-5 text-4xl leading-[1.1] font-extrabold tracking-[-0.03em] sm:text-5xl">
+                Reservasi ruang belajar yang tertib dan terbuka.
+            </h1>
 
-                <p class="mt-4 max-w-2xl text-sm leading-relaxed text-[#4E5C52] sm:text-base dark:text-[#B5C4B6]">
-                    AntreKita memetakan setiap <span class="font-bold text-[#1A241E] dark:text-[#CAFFA1]">Ruang Kelompok, Meja Indoor, Meja Outdoor,</span> hingga <span class="font-bold text-[#1A241E] dark:text-[#CAFFA1]">Kursi Baca</span> dalam denah spasial 2D secara real-time. Bebas drama kursi penuh, dilengkapi aturan adil 1 Akun = 1 Booking, dan pengingat WhatsApp H-5 menit otomatis.
-                </p>
+            <p class="mt-4 max-w-xl text-sm leading-relaxed text-[#47625A] sm:text-base dark:text-[#98B4AC]">
+                Cek ketersediaan meja, kursi baca, dan ruang diskusi langsung dari peta 2D secara real-time di berbagai gedung perpustakaan mitra.
+            </p>
 
-                <div class="mt-7 flex flex-wrap items-center gap-3">
-                    @auth
-                        @if (auth()->user()->isDeveloper())
-                            <a href="{{ route('developer.console') }}" wire:navigate
-                                class="rounded-xl bg-[#14452F] px-6 py-3 text-sm font-bold text-[#CAFFA1] transition hover:bg-[#0F3524] dark:bg-[#CAFFA1] dark:text-[#1A241E]">
-                                Buka Pusat Kendali
-                            </a>
-                        @elseif (auth()->user()->isAdmin())
-                            <a href="{{ route('admin.monitor') }}" wire:navigate
-                                class="rounded-xl bg-[#14452F] px-6 py-3 text-sm font-bold text-[#CAFFA1] transition hover:bg-[#0F3524] dark:bg-[#CAFFA1] dark:text-[#1A241E]">
-                                Buka Live Monitor Gedung
-                            </a>
-                        @else
-                            <a href="{{ route('visitor.institutions') }}" wire:navigate
-                                class="rounded-xl bg-[#14452F] px-6 py-3 text-sm font-bold text-[#CAFFA1] transition hover:bg-[#0F3524] dark:bg-[#CAFFA1] dark:text-[#1A241E]">
-                                Jelajahi Denah Fasilitas
-                            </a>
-                        @endif
+            <div class="mt-7 flex flex-wrap items-center gap-3">
+                @auth
+                    @if (auth()->user()->isDeveloper())
+                        <a href="{{ route('developer.console') }}" wire:navigate
+                            class="btn-brand rounded-lg px-6 py-3 text-sm font-semibold shadow-xs">
+                            Buka Pusat Kendali &rarr;
+                        </a>
+                    @elseif (auth()->user()->isAdmin())
+                        <a href="{{ route('admin.monitor') }}" wire:navigate
+                            class="btn-brand rounded-lg px-6 py-3 text-sm font-semibold shadow-xs">
+                            Buka Live Monitor &rarr;
+                        </a>
                     @else
-                        <a href="{{ route('login.visitor') }}" wire:navigate
-                            class="rounded-xl bg-[#14452F] px-6 py-3 text-sm font-bold text-[#CAFFA1] transition hover:bg-[#0F3524] dark:bg-[#CAFFA1] dark:text-[#1A241E]">
-                            Masuk sebagai Visitor
+                        <a href="{{ route('visitor.institutions') }}" wire:navigate
+                            class="btn-brand rounded-lg px-6 py-3 text-sm font-semibold shadow-xs">
+                            Jelajahi Fasilitas &rarr;
                         </a>
-                        <a href="{{ route('register.visitor') }}" wire:navigate
-                            class="rounded-xl border border-[#D9D1BA] bg-[#EFEAD8] px-5 py-3 text-sm font-bold transition hover:border-[#14452F] dark:border-[#27382F] dark:bg-[#1C2922]">
-                            Daftar Akun Baru
-                        </a>
-                        <a href="{{ route('login.admin') }}" wire:navigate
-                            class="rounded-xl px-4 py-3 text-xs font-bold text-[#4E5C52] underline-offset-4 hover:underline dark:text-[#B5C4B6]">
-                            Portal Pengelola Gedung &rarr;
-                        </a>
-                    @endauth
-                </div>
+                    @endif
+                @else
+                    <a href="{{ route('login.visitor') }}" wire:navigate
+                        class="btn-brand rounded-lg px-6 py-3 text-sm font-semibold shadow-xs">
+                        Mulai Reservasi &rarr;
+                    </a>
+                    <a href="{{ route('login.admin') }}" wire:navigate
+                        class="surface-card rounded-lg px-5 py-3 text-sm font-semibold text-[#0E241E] transition hover:border-[#0F6E56] dark:text-[#E6F2EE]">
+                        Portal Pengelola
+                    </a>
+                @endauth
             </div>
+        </div>
 
-            <!-- Architectural Reading Room Mini-Map Widget -->
-            <div class="lg:col-span-5">
-                <div class="rounded-2xl border border-[#D9D1BA] bg-[#EFEAD8]/80 p-4 dark:border-[#27382F] dark:bg-[#1C2922]">
-                    <div class="flex items-center justify-between border-b border-[#D9D1BA] pb-2.5 dark:border-[#27382F]">
-                        <span class="font-mono text-[10px] font-bold uppercase tracking-wider text-[#14452F] dark:text-[#CAFFA1]">
-                            Ketersediaan Langsung Hari Ini
-                        </span>
-                        <span class="inline-flex items-center gap-1.5 font-mono text-[10px] font-bold text-[#14452F] dark:text-[#CAFFA1]">
-                            <span class="h-2 w-2 animate-pulse rounded-full bg-[#10B981]"></span>
-                            LIVE SYNC
-                        </span>
-                    </div>
+        <!-- Clean Multi-Facility Live Overview Card (Neutral Across All Partners) -->
+        <div class="lg:col-span-5">
+            <div class="surface-card rounded-2xl border-t-4 border-t-[#90DEC3] p-6">
+                <div class="flex items-center justify-between border-b border-[#CBE8DC] pb-3.5 dark:border-[#213531]">
+                    <span class="text-xs font-bold tracking-tight">Ringkasan Ketersediaan Jaringan</span>
+                    <span class="inline-flex items-center gap-1.5 rounded-full bg-[#90DEC3]/45 px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#0E241E] dark:bg-[#192825] dark:text-[#90DEC3]">
+                        <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500"></span>
+                        LIVE
+                    </span>
+                </div>
 
-                    <div class="mt-3 grid grid-cols-3 gap-2.5">
-                        <div class="rounded-xl border border-[#D9D1BA] bg-[#FAF7EC] p-3 text-center dark:border-[#27382F] dark:bg-[#151F1A]">
-                            <div class="font-mono text-xl font-bold">{{ $institutions->count() }}</div>
-                            <div class="text-[10px] font-semibold text-[#4E5C52] dark:text-[#9CB09E]">Lokasi Aktif</div>
-                        </div>
-                        <div class="rounded-xl border border-[#14452F]/25 bg-[#CAFFA1]/75 p-3 text-center text-[#1A241E]">
-                            <div class="font-mono text-xl font-bold">{{ $availableUnits }}</div>
-                            <div class="text-[10px] font-bold">Available</div>
-                        </div>
-                        <div class="rounded-xl border border-rose-300 bg-rose-100/80 p-3 text-center text-rose-950 dark:border-rose-800 dark:bg-rose-950/50 dark:text-rose-200">
-                            <div class="font-mono text-xl font-bold">{{ $occupiedUnits }}</div>
-                            <div class="text-[10px] font-bold">In Used</div>
-                        </div>
+                <div class="mt-4 grid grid-cols-3 gap-2.5 text-center">
+                    <div class="surface-subtle rounded-xl p-3.5">
+                        <div class="font-mono text-2xl font-extrabold tabular-nums">{{ $institutions->count() }}</div>
+                        <div class="mt-0.5 text-[11px] font-medium text-[#47625A] dark:text-[#98B4AC]">Lokasi Aktif</div>
                     </div>
+                    <div class="rounded-xl bg-[#90DEC3]/55 p-3.5 text-[#0E241E] dark:bg-[#192D28] dark:text-[#90DEC3]">
+                        <div class="font-mono text-2xl font-extrabold tabular-nums">{{ $availableUnits }}</div>
+                        <div class="mt-0.5 text-[11px] font-bold">Available</div>
+                    </div>
+                    <div class="rounded-xl border border-rose-500/25 bg-rose-500/12 p-3.5 text-rose-800 dark:text-rose-200">
+                        <div class="font-mono text-2xl font-extrabold tabular-nums">{{ $occupiedUnits }}</div>
+                        <div class="mt-0.5 text-[11px] font-bold">In Used</div>
+                    </div>
+                </div>
 
-                    <div class="mt-3 rounded-xl border border-[#D9D1BA] bg-[#FAF7EC] p-3 dark:border-[#27382F] dark:bg-[#151F1A]">
-                        <div class="flex items-center justify-between text-[11px] font-bold">
-                            <span>Simulasi Status Denah 2D</span>
-                            <span class="font-mono text-[10px] text-[#4E5C52] dark:text-[#9CB09E]">Lantai Utama</span>
-                        </div>
-                        <div class="mt-2.5 grid grid-cols-4 gap-2 font-mono text-[10px] font-bold">
-                            <div class="rounded-lg border border-emerald-300 bg-[#CAFFA1]/60 p-2 text-center text-[#1A241E]">Ruang01</div>
-                            <div class="rounded-lg border border-rose-300 bg-rose-100/90 p-2 text-center text-rose-900 dark:bg-rose-950/60 dark:text-rose-200">Ruang02</div>
-                            <div class="rounded-lg border border-emerald-300 bg-[#CAFFA1]/60 p-2 text-center text-[#1A241E]">Meja04</div>
-                            <div class="rounded-lg border border-amber-300 bg-amber-100/90 p-2 text-center text-amber-950 dark:bg-amber-950/60 dark:text-amber-200">Meja09</div>
-                        </div>
-                    </div>
+                <div class="mt-4 flex items-center justify-between rounded-xl border border-[#CBE8DC] bg-[#E2F3EC]/60 px-4 py-3 text-xs dark:border-[#213531] dark:bg-[#192825]">
+                    <span class="font-medium text-[#47625A] dark:text-[#98B4AC]">Rasio kursi siap pakai</span>
+                    <span class="font-mono text-sm font-extrabold text-[#0F6E56] dark:text-[#90DEC3]">{{ $availabilityPct }}% Tersedia</span>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- 3-Step Public Architecture (Zero Developer exposure) -->
-    <section class="grid gap-4 md:grid-cols-3">
-        <div class="paper-card rounded-2xl p-6">
-            <div class="flex items-center justify-between">
-                <span class="rounded-lg bg-[#CAFFA1] px-2.5 py-1 font-mono text-[10px] font-bold text-[#1A241E]">01 &middot; DENAH SPASIAL</span>
-                <svg class="h-5 w-5 text-[#14452F] dark:text-[#CAFFA1]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <rect x="3" y="3" width="18" height="18" rx="2" />
-                    <path d="M9 3v18M3 9h18" />
-                </svg>
-            </div>
-            <h2 class="mt-4 font-serif text-xl font-bold">Pilih Posisi Riil di Peta 2D</h2>
-            <p class="mt-1.5 text-xs leading-relaxed text-[#4E5C52] dark:text-[#B5C4B6]">
-                Pengelola memetakan posisi nyata setiap ruang diskusi, meja indoor, meja outdoor, dan kursi baca agar pengunjung tidak salah tempat.
+    <!-- 3 Compact Value Highlights -->
+    <section id="cara-kerja" class="grid gap-4 md:grid-cols-3">
+        <div class="surface-card rounded-2xl border-t-4 border-t-[#90DEC3] p-5">
+            <h2 class="text-sm font-bold tracking-tight">1. Denah Spasial 2D</h2>
+            <p class="mt-1.5 text-xs leading-relaxed text-[#47625A] dark:text-[#98B4AC]">
+                Lihat tata letak meja dan ruangan sebenarnya sebelum memilih tempat.
             </p>
         </div>
 
-        <div class="paper-card rounded-2xl p-6">
-            <div class="flex items-center justify-between">
-                <span class="rounded-lg bg-[#CAFFA1] px-2.5 py-1 font-mono text-[10px] font-bold text-[#1A241E]">02 &middot; PRESISI MENIT</span>
-                <svg class="h-5 w-5 text-[#14452F] dark:text-[#CAFFA1]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <circle cx="12" cy="12" r="9" />
-                    <path d="M12 7v5l3 2" stroke-linecap="round" />
-                </svg>
-            </div>
-            <h2 class="mt-4 font-serif text-xl font-bold">Anti-Monopoli &amp; Waiting List</h2>
-            <p class="mt-1.5 text-xs leading-relaxed text-[#4E5C52] dark:text-[#B5C4B6]">
-                Aturan ketat 1 Akun = 1 Booking menjamin keadilan ruang publik. Jika unit terpakai, antrean berikutnya dapat melihat countdown sisa waktu secara transparan.
+        <div class="surface-card rounded-2xl border-t-4 border-t-[#0F6E56] p-5 dark:border-t-[#54C2A0]">
+            <h2 class="text-sm font-bold tracking-tight">2. Adil &amp; Anti-Monopoli</h2>
+            <p class="mt-1.5 text-xs leading-relaxed text-[#47625A] dark:text-[#98B4AC]">
+                1 akun hanya memegang 1 kursi aktif dengan antrean Waiting List transparan.
             </p>
         </div>
 
-        <div class="paper-card rounded-2xl p-6">
-            <div class="flex items-center justify-between">
-                <span class="rounded-lg bg-[#CAFFA1] px-2.5 py-1 font-mono text-[10px] font-bold text-[#1A241E]">03 &middot; HANDOVER H-5</span>
-                <svg class="h-5 w-5 text-[#14452F] dark:text-[#CAFFA1]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-                </svg>
-            </div>
-            <h2 class="mt-4 font-serif text-xl font-bold">Notifikasi WA &amp; Slide to Finish</h2>
-            <p class="mt-1.5 text-xs leading-relaxed text-[#4E5C52] dark:text-[#B5C4B6]">
-                Lima menit sebelum waktu habis, pengingat otomatis terkirim ke pengguna aktif dan pengantre berikutnya sebelum serah-terima via Slide to Finish.
+        <div class="surface-card rounded-2xl border-t-4 border-t-amber-400 p-5">
+            <h2 class="text-sm font-bold tracking-tight">3. Pengingat WhatsApp H-5</h2>
+            <p class="mt-1.5 text-xs leading-relaxed text-[#47625A] dark:text-[#98B4AC]">
+                Notifikasi otomatis 5 menit sebelum giliran usai dan serah-terima Slide to Finish.
             </p>
         </div>
     </section>
 
-    <!-- Partner Facilities Showcase -->
-    <section class="paper-card rounded-3xl p-6">
-        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#D9D1BA] pb-4 dark:border-[#27382F]">
+    <!-- Equal Directory of All Active Partner Facilities -->
+    <section id="fasilitas" class="space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <h2 class="font-serif text-xl font-bold">Direktori Perpustakaan &amp; Ruang Belajar</h2>
-                <p class="text-xs text-[#4E5C52] dark:text-[#B5C4B6]">Pilih fasilitas mitra yang sudah terintegrasi dengan sistem AntreKita.</p>
+                <h2 class="text-xl font-bold tracking-tight">Fasilitas Terdaftar</h2>
+                <p class="mt-0.5 text-xs text-[#47625A] dark:text-[#98B4AC]">
+                    Pilih gedung mitra untuk mengecek ketersediaan tempat secara langsung.
+                </p>
             </div>
-            <a href="{{ route('login.visitor') }}" wire:navigate class="text-xs font-bold text-[#14452F] hover:underline dark:text-[#CAFFA1]">
-                Masuk untuk reservasi &rarr;
+            <a href="{{ auth()->check() ? route('visitor.institutions') : route('login.visitor') }}" wire:navigate
+                class="text-xs font-semibold text-[#0F6E56] hover:underline dark:text-[#90DEC3]">
+                Lihat semua lokasi &rarr;
             </a>
         </div>
 
-        <div class="mt-5 grid gap-4 md:grid-cols-3">
+        <div class="grid gap-4 md:grid-cols-2">
             @foreach ($institutions as $inst)
-                <div class="rounded-2xl border border-[#D9D1BA] bg-[#EFEAD8]/65 p-4 transition hover:border-[#14452F] dark:border-[#27382F] dark:bg-[#1C2922]">
-                    <div class="flex items-start justify-between gap-2">
-                        <h3 class="font-serif text-base font-bold">{{ $inst->name }}</h3>
-                        <span class="shrink-0 rounded-md bg-[#CAFFA1] px-2 py-0.5 font-mono text-[10px] font-bold text-[#1A241E]">
-                            {{ $inst->facility_units_count }} unit
-                        </span>
+                <div class="surface-card flex flex-col justify-between rounded-2xl p-5 transition hover:border-[#0F6E56]/50">
+                    <div>
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <h3 class="text-base font-bold tracking-tight">{{ $inst->name }}</h3>
+                                <p class="mt-0.5 text-xs text-[#47625A] dark:text-[#98B4AC]">{{ $inst->building_type }} &middot; {{ $inst->city }}</p>
+                            </div>
+                            <span class="shrink-0 rounded-md bg-[#90DEC3]/75 px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#0E241E]">
+                                {{ $inst->facility_units_count }} unit
+                            </span>
+                        </div>
+                        <p class="mt-2.5 line-clamp-2 text-xs leading-relaxed text-[#47625A] dark:text-[#98B4AC]">{{ $inst->description }}</p>
                     </div>
-                    <p class="mt-1 text-xs font-semibold text-[#4E5C52] dark:text-[#9CB09E]">{{ $inst->building_type }} &middot; {{ $inst->city }}</p>
-                    <p class="mt-2 text-xs leading-relaxed text-[#4E5C52] dark:text-[#B5C4B6] line-clamp-2">{{ $inst->description }}</p>
+                    <div class="mt-4 border-t border-[#CBE8DC] pt-3 font-mono text-[11px] text-[#47625A] dark:border-[#213531] dark:text-[#98B4AC]">
+                        {{ $inst->address }}
+                    </div>
                 </div>
             @endforeach
         </div>

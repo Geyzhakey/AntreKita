@@ -15,6 +15,7 @@ class HomePage extends Component
     {
         $institutions = Institution::withCount('facilityUnits')
             ->where('is_active', true)
+            ->orderByDesc('has_custom_floorplan')
             ->orderBy('name')
             ->get();
 

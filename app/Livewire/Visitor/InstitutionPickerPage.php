@@ -28,6 +28,7 @@ class InstitutionPickerPage extends Component
                 });
             })
             ->with(['facilityUnits' => fn ($q) => $q->where('is_active', true)->with('activeBooking')])
+            ->orderByDesc('has_custom_floorplan')
             ->orderBy('name')
             ->get();
 

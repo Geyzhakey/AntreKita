@@ -20,16 +20,6 @@ class AdminLoginPage extends Component
 
     public string $password = '';
 
-    public bool $showRequestModal = false;
-
-    public string $req_name = '';
-
-    public string $req_institution = '';
-
-    public string $req_desired_password = '';
-
-    public string $req_purpose = '';
-
     public function login(): void
     {
         $this->validate([
@@ -38,7 +28,7 @@ class AdminLoginPage extends Component
             'password' => ['required', 'string'],
         ], [
             'institution_name.required' => 'Masukkan Nama Instansi Anda.',
-            'registration_code.required' => 'Masukkan Kode Daftar gedung/instansi (misal: LBR1ITB26).',
+            'registration_code.required' => 'Masukkan Kode Daftar gedung/instansi Anda.',
         ]);
 
         $this->ensureIsNotRateLimited();
@@ -80,23 +70,20 @@ class AdminLoginPage extends Component
         $this->redirectIntended($destination, navigate: true);
     }
 
-    public function fillDemo(string $inst, string $code, string $pass = 'password'): void
-    {
-        $this->institution_name = $inst;
-        $this->registration_code = $code;
-        $this->password = $pass;
-    }
-
     public function getWhatsappUrlProperty(): string
     {
-        $text = "Halo Tim AntreKita,\nSaya ingin mendaftarkan Akun Administrator Instansi:\n"
-            . "• Nama Pendaftar: " . ($this->req_name ?: '-') . "\n"
-            . "• Nama Instansi: " . ($this->req_institution ?: '-') . "\n"
-            . "• Password yang Diinginkan: " . ($this->req_desired_password ?: '-') . "\n"
-            . "• Tujuan Permintaan Kebutuhan: " . ($this->req_purpose ?: '-') . "\n\n"
-            . "Mohon pembuatan Kode Daftar resmi untuk gedung kami. Terima kasih.";
+        $template = "Halo Tim AntreKita,\n"
+            . "Saya ingin mendaftarkan Akun Administrator Instansi baru.\n\n"
+            . "Silakan lengkapi format pendaftaran berikut:\n"
+            . "• Nama Pendaftar: [Isi Nama Lengkap Anda]\n"
+            . "• Nama Instansi / Gedung: [Isi Nama Instansi]\n"
+            . "• Jenis Gedung: [Perpustakaan / Pusat Belajar / Co-Working]\n"
+            . "• Kota & Alamat Lengkap: [Isi Lokasi Gedung]\n"
+            . "• Password yang Diinginkan: [Isi Kata Sandi Akun]\n"
+            . "• Tujuan Permintaan Kebutuhan: [Jelaskan Kebutuhan Pemetaan Ruangan/Meja]\n\n"
+            . "Mohon penerbitan Kode Daftar resmi untuk gedung kami. Terima kasih.";
 
-        return 'https://wa.me//081222822531?text=' . rawurlencode($text);
+        return 'https://wa.me//081222822531?text=' . rawurlencode($template);
     }
 
     protected function ensureIsNotRateLimited(): void

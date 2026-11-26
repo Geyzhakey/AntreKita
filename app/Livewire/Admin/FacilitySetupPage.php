@@ -15,7 +15,6 @@ class FacilitySetupPage extends Component
 {
     public ?Institution $institution = null;
 
-    // Institution profile fields
     public string $inst_name = '';
 
     public string $inst_city = '';
@@ -30,6 +29,8 @@ class FacilitySetupPage extends Component
 
     public int $map_rows = 4;
 
+    public string $floorFilter = 'all';
+
     // Single Unit CRUD
     public ?int $editingUnitId = null;
 
@@ -37,7 +38,11 @@ class FacilitySetupPage extends Component
 
     public string $name = '';
 
-    public string $zone = 'indoor_desk';
+    public string $zone = 'standard_desk';
+
+    public int $floor = 1;
+
+    public string $seat_type = 'S';
 
     public int $capacity = 1;
 
@@ -84,8 +89,8 @@ class FacilitySetupPage extends Component
             'inst_building_type' => ['required', 'string', 'max:80'],
             'inst_address' => ['required', 'string', 'max:255'],
             'inst_description' => ['nullable', 'string', 'max:1000'],
-            'map_cols' => ['required', 'integer', 'min:3', 'max:10'],
-            'map_rows' => ['required', 'integer', 'min:2', 'max:8'],
+            'map_cols' => ['required', 'integer', 'min:3', 'max:12'],
+            'map_rows' => ['required', 'integer', 'min:2', 'max:12'],
         ]);
 
         if ($this->institution) {
@@ -143,10 +148,10 @@ class FacilitySetupPage extends Component
         ]);
 
         $specs = [
-            ['count' => $this->batch_group_rooms, 'prefix' => 'Ruang', 'label' => 'Ruang Kelompok', 'zone' => 'group_room', 'cap' => 6],
-            ['count' => $this->batch_indoor_desks, 'prefix' => 'MejaIn', 'label' => 'Meja Indoor', 'zone' => 'indoor_desk', 'cap' => 1],
-            ['count' => $this->batch_outdoor_desks, 'prefix' => 'MejaOut', 'label' => 'Meja Outdoor', 'zone' => 'outdoor_desk', 'cap' => 1],
-            ['count' => $this->batch_reading_chairs, 'prefix' => 'Kursi', 'label' => 'Kursi Baca', 'zone' => 'reading_chair', 'cap' => 1],
+            ['count' => $this->batch_group_rooms, 'prefix' => 'Ruang', 'label' => 'Ruang Kelompok', 'zone' => 'group_room', 'seat_type' => 'ROOM', 'cap' => 6],
+            ['count' => $this->batch_indoor_desks, 'prefix' => 'MejaIn', 'label' => 'Meja Standar Indoor', 'zone' => 'indoor_desk', 'seat_type' => 'S', 'cap' => 1],
+            ['count' => $this->batch_outdoor_desks, 'prefix' => 'MejaOut', 'label' => 'Meja Leseh / Outdoor', 'zone' => 'outdoor_desk', 'seat_type' => 'L', 'cap' => 1],
+            ['count' => $this->batch_reading_chairs, 'prefix' => 'KursiT', 'label' => 'Meja & Kursi Tinggi', 'zone' => 'reading_chair', 'seat_type' => 'H', 'cap' => 1],
         ];
 
         $cols = max(3, $this->institution->map_cols);
@@ -187,7 +192,10 @@ class FacilitySetupPage extends Component
                     'institution_id' => $this->institution->id,
                     'code' => $code,
                     'name' => "{$spec['label']} {$num}",
+                    'display_label' => $code,
                     'zone' => $spec['zone'],
+                    'floor' => 1,
+                    'seat_type' => $spec['seat_type'],
                     'capacity' => $spec['cap'],
                     'max_duration_minutes' => 180,
                     'is_active' => true,
@@ -202,8 +210,8 @@ class FacilitySetupPage extends Component
         }
 
         if ($y > $this->institution->map_rows) {
-            $this->institution->update(['map_rows' => min(8, $y)]);
-            $this->map_rows = min(8, $y);
+            $this->institution->update(['map_rows' => min(12, $y)]);
+            $this->map_rows = min(12, $y);
         }
 
         $this->reset(['batch_group_rooms', 'batch_indoor_desks', 'batch_outdoor_desks', 'batch_reading_chairs']);
@@ -229,10 +237,12 @@ class FacilitySetupPage extends Component
             ],
             'name' => ['required', 'string', 'max:255'],
             'zone' => ['required', Rule::in(array_keys(FacilityUnit::ZONES))],
+            'floor' => ['required', 'integer', 'min:1', 'max:10'],
+            'seat_type' => ['required', Rule::in(array_keys(FacilityUnit::SEAT_TYPES))],
             'capacity' => ['required', 'integer', 'min:1', 'max:50'],
             'max_duration_minutes' => ['required', 'integer', 'min:15', 'max:480'],
-            'pos_x' => ['required', 'integer', 'min:1', 'max:10'],
-            'pos_y' => ['required', 'integer', 'min:1', 'max:8'],
+            'pos_x' => ['required', 'integer', 'min:1', 'max:12'],
+            'pos_y' => ['required', 'integer', 'min:1', 'max:12'],
         ]);
 
         if ($this->editingUnitId) {
@@ -242,6 +252,8 @@ class FacilitySetupPage extends Component
                 'code' => trim($this->code),
                 'name' => trim($this->name),
                 'zone' => $this->zone,
+                'floor' => $this->floor,
+                'seat_type' => $this->seat_type,
                 'capacity' => $this->capacity,
                 'max_duration_minutes' => $this->max_duration_minutes,
                 'pos_x' => $this->pos_x,
@@ -252,7 +264,10 @@ class FacilitySetupPage extends Component
                 'institution_id' => $this->institution->id,
                 'code' => trim($this->code),
                 'name' => trim($this->name),
+                'display_label' => trim($this->code),
                 'zone' => $this->zone,
+                'floor' => $this->floor,
+                'seat_type' => $this->seat_type,
                 'capacity' => $this->capacity,
                 'max_duration_minutes' => $this->max_duration_minutes,
                 'is_active' => true,
@@ -276,6 +291,8 @@ class FacilitySetupPage extends Component
         $this->code = $unit->code;
         $this->name = $unit->name;
         $this->zone = $unit->zone;
+        $this->floor = $unit->floor ?? 1;
+        $this->seat_type = $unit->seat_type ?? 'S';
         $this->capacity = $unit->capacity;
         $this->max_duration_minutes = $unit->max_duration_minutes;
         $this->pos_x = $unit->pos_x;
@@ -286,7 +303,9 @@ class FacilitySetupPage extends Component
     {
         $this->editingUnitId = null;
         $this->reset(['code', 'name']);
-        $this->zone = 'indoor_desk';
+        $this->zone = 'standard_desk';
+        $this->floor = 1;
+        $this->seat_type = 'S';
         $this->capacity = 1;
         $this->max_duration_minutes = 180;
         $this->pos_x = 1;
@@ -314,16 +333,25 @@ class FacilitySetupPage extends Component
 
     public function render()
     {
-        $units = $this->institution
+        $allUnits = $this->institution
             ? $this->institution->facilityUnits()->get()
             : collect();
+
+        $floors = $allUnits->pluck('floor')->unique()->sort()->values();
+
+        $units = $this->floorFilter === 'all'
+            ? $allUnits
+            : $allUnits->where('floor', (int) $this->floorFilter)->values();
 
         $gridMap = $units->keyBy(fn (FacilityUnit $u) => "{$u->pos_x},{$u->pos_y}");
 
         return view('livewire.admin.facility-setup-page', [
             'units' => $units,
+            'totalUnitsCount' => $allUnits->count(),
+            'floors' => $floors,
             'gridMap' => $gridMap,
             'zones' => FacilityUnit::ZONES,
+            'seatTypes' => FacilityUnit::SEAT_TYPES,
         ]);
     }
 }

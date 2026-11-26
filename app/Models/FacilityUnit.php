@@ -11,33 +11,59 @@ class FacilityUnit extends Model
 {
     public const ZONES = [
         'group_room' => 'Ruang Kelompok',
+        'leseh_desk' => 'Meja Leseh (L)',
+        'standard_desk' => 'Meja Standar (S)',
+        'high_desk' => 'Meja & Kursi Tinggi (H)',
+        'focus_desk' => 'Ruang Fokus',
+        'sofa_area' => 'Area Sofa',
         'indoor_desk' => 'Zona Meja Indoor',
         'outdoor_desk' => 'Zona Meja Outdoor',
         'reading_chair' => 'Kursi Baca',
+    ];
+
+    public const SEAT_TYPES = [
+        'L' => 'Meja Leseh',
+        'S' => 'Meja Standar',
+        'H' => 'Meja & Kursi Tinggi',
+        'F' => 'Meja Ruang Fokus',
+        'SOFA' => 'Area Sofa',
+        'ROOM' => 'Ruangan',
     ];
 
     protected $fillable = [
         'institution_id',
         'code',
         'name',
+        'display_label',
         'zone',
+        'floor',
+        'seat_type',
         'capacity',
         'max_duration_minutes',
         'is_active',
         'sort_order',
         'pos_x',
         'pos_y',
+        'map_x',
+        'map_y',
+        'map_w',
+        'map_h',
     ];
 
     protected function casts(): array
     {
         return [
+            'floor' => 'integer',
             'capacity' => 'integer',
             'max_duration_minutes' => 'integer',
             'is_active' => 'boolean',
             'sort_order' => 'integer',
             'pos_x' => 'integer',
             'pos_y' => 'integer',
+            'map_x' => 'float',
+            'map_y' => 'float',
+            'map_w' => 'float',
+            'map_h' => 'float',
         ];
     }
 
@@ -88,5 +114,19 @@ class FacilityUnit extends Model
     public function zoneLabel(): string
     {
         return self::ZONES[$this->zone] ?? $this->zone;
+    }
+
+    public function seatTypeLabel(): string
+    {
+        if ($this->seat_type && isset(self::SEAT_TYPES[$this->seat_type])) {
+            return self::SEAT_TYPES[$this->seat_type];
+        }
+
+        return $this->zoneLabel();
+    }
+
+    public function shortLabel(): string
+    {
+        return $this->display_label ?: $this->code;
     }
 }
