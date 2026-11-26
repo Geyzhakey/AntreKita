@@ -66,6 +66,12 @@ class ControlCenterPage extends Component
 
     public bool $booking_maintenance_mode = false;
 
+    public string $whatsapp_driver = 'fonnte';
+
+    public string $whatsapp_api_token = '';
+
+    public string $whatsapp_api_url = '';
+
     public function mount(): void
     {
         abort_unless(Auth::user()?->isDeveloper(), 403);
@@ -73,6 +79,9 @@ class ControlCenterPage extends Component
         $this->developer_whatsapp = SystemSetting::getValue('developer_whatsapp', '6281200000000') ?? '6281200000000';
         $this->global_announcement = SystemSetting::getValue('global_announcement', '') ?? '';
         $this->booking_maintenance_mode = SystemSetting::getValue('booking_maintenance_mode', '0') === '1';
+        $this->whatsapp_driver = SystemSetting::getValue('whatsapp_driver', config('services.whatsapp.driver', 'fonnte')) ?? 'fonnte';
+        $this->whatsapp_api_token = SystemSetting::getValue('whatsapp_api_token', (string) config('services.whatsapp.token', '')) ?? '';
+        $this->whatsapp_api_url = SystemSetting::getValue('whatsapp_api_url', (string) config('services.whatsapp.url', '')) ?? '';
     }
 
     public function createAdminAccount(): void
@@ -300,6 +309,9 @@ class ControlCenterPage extends Component
         SystemSetting::setValue('developer_whatsapp', $wa);
         SystemSetting::setValue('global_announcement', trim($this->global_announcement));
         SystemSetting::setValue('booking_maintenance_mode', $this->booking_maintenance_mode ? '1' : '0');
+        SystemSetting::setValue('whatsapp_driver', strtolower(trim($this->whatsapp_driver)) ?: 'fonnte');
+        SystemSetting::setValue('whatsapp_api_token', trim($this->whatsapp_api_token));
+        SystemSetting::setValue('whatsapp_api_url', trim($this->whatsapp_api_url));
 
         $this->developer_whatsapp = $wa;
 

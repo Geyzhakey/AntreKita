@@ -1,4 +1,4 @@
-<div wire:poll.5s class="space-y-6">
+<div wire:poll.5s="checkRealtimeStatus" class="space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
             <span class="rounded-md bg-[#90DEC3] px-2.5 py-1 font-mono text-[10px] font-bold text-[#0E241E]">KARTU BACA DIGITAL &middot; HANDOVER H-5 MENIT</span>
@@ -84,19 +84,13 @@
                     </div>
 
                     @if ($booking->status === 'active')
-                        <div class="surface-subtle mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4 text-xs">
-                            <div>
-                                <p class="font-bold">
-                                    {{ $nextWaiting ? 'Pengantre Berikutnya: ' . $nextWaiting->group_name : 'Belum ada pengguna di Waiting List' }}
-                                </p>
-                                <p class="mt-0.5 text-[11px] text-[#47625A] dark:text-[#98B4AC]">
-                                    Pada H-5 menit sebelum selesai, pengingat otomatis terkirim ke kedua pihak.
-                                </p>
-                            </div>
-                            <button type="button" wire:click="simulateHMinus5"
-                                class="rounded-lg border border-amber-500/40 bg-amber-500/15 px-3.5 py-1.5 text-xs font-semibold text-amber-900 hover:bg-amber-500/25 dark:text-amber-300">
-                                Uji Trigger H-5 Menit
-                            </button>
+                        <div class="surface-subtle mt-4 rounded-2xl p-4 text-xs">
+                            <p class="font-bold">
+                                {{ $nextWaiting ? 'Pengantre Berikutnya: ' . $nextWaiting->group_name : 'Belum ada pengguna di Waiting List' }}
+                            </p>
+                            <p class="mt-0.5 text-[11px] text-[#47625A] dark:text-[#98B4AC]">
+                                Pada H-5 menit sebelum selesai, pengingat otomatis terkirim ke WhatsApp &amp; Email secara real-time.
+                            </p>
                         </div>
 
                         <div class="mt-6 space-y-3 border-t border-dashed border-[#CBE8DC] pt-5 dark:border-[#213531]">
@@ -136,24 +130,52 @@
             </div>
 
             <div class="surface-card rounded-2xl p-5 lg:col-span-5">
-                <div class="flex items-center justify-between border-b border-[#CBE8DC] pb-3.5 dark:border-[#213531]">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#CBE8DC] pb-3.5 dark:border-[#213531]">
                     <div>
                         <h2 class="text-base font-bold tracking-tight">Log Notifikasi WhatsApp &amp; Email</h2>
-                        <p class="text-[11px] text-[#47625A] dark:text-[#98B4AC]">Riwayat pesan otomatis dari Sistem AntreKita.</p>
+                        <p class="text-[11px] text-[#47625A] dark:text-[#98B4AC]">Status pengiriman langsung dari Sistem AntreKita.</p>
                     </div>
-                    <span class="rounded-md bg-[#25D366]/20 px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#0F6E56] dark:text-[#90DEC3]">WA Gateway</span>
+                    <div class="flex items-center gap-1.5">
+                        <span class="rounded-md px-2 py-0.5 font-mono text-[10px] font-bold {{ $waConfigured ? 'bg-[#25D366]/20 text-[#0F6E56] dark:text-[#90DEC3]' : 'bg-amber-500/15 text-amber-800 dark:text-amber-300' }}">
+                            WA: {{ $waConfigured ? 'Aktif' : 'Belum Setup' }}
+                        </span>
+                        <span class="rounded-md px-2 py-0.5 font-mono text-[10px] font-bold {{ $emailConfigured ? 'bg-[#25D366]/20 text-[#0F6E56] dark:text-[#90DEC3]' : 'bg-amber-500/15 text-amber-800 dark:text-amber-300' }}">
+                            SMTP: {{ $emailConfigured ? 'Aktif' : 'Belum Setup' }}
+                        </span>
+                    </div>
                 </div>
 
                 <div class="mt-4 space-y-2.5">
                     @forelse ($logs as $log)
+                        @php
+                            $logStatus = $log->status ?? 'sent';
+                            $badgeClass = match ($logStatus) {
+                                'sent' => 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300',
+                                'failed' => 'bg-rose-500/15 text-rose-800 dark:text-rose-300',
+                                default => 'bg-amber-500/15 text-amber-800 dark:text-amber-300',
+                            };
+                            $badgeLabel = match ($logStatus) {
+                                'sent' => 'Terkirim',
+                                'failed' => 'Gagal',
+                                default => 'Perlu Setup',
+                            };
+                        @endphp
                         <div class="surface-subtle rounded-xl p-3.5 text-xs">
-                            <div class="flex items-center justify-between gap-2">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
                                 <span class="font-mono text-[11px] font-bold {{ $log->channel === 'whatsapp' ? 'text-[#0F6E56] dark:text-[#90DEC3]' : 'text-[#47625A] dark:text-[#98B4AC]' }}">
                                     {{ strtoupper($log->channel) }} &rarr; {{ $log->recipient }}
                                 </span>
-                                <span class="font-mono text-[10px] text-[#47625A] dark:text-[#98B4AC]">{{ $log->sent_at->format('H:i:s') }}</span>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="rounded px-1.5 py-0.5 font-mono text-[10px] font-bold {{ $badgeClass }}">{{ $badgeLabel }}</span>
+                                    <span class="font-mono text-[10px] text-[#47625A] dark:text-[#98B4AC]">{{ $log->sent_at->format('H:i:s') }}</span>
+                                </div>
                             </div>
                             <p class="mt-1 leading-relaxed">{{ $log->message }}</p>
+                            @if ($log->error_message)
+                                <p class="mt-1.5 rounded-lg bg-rose-500/10 px-2.5 py-1 font-mono text-[10px] text-rose-700 dark:text-rose-300">
+                                    {{ $log->error_message }}
+                                </p>
+                            @endif
                         </div>
                     @empty
                         <p class="py-6 text-center text-xs text-[#47625A]">Belum ada notifikasi yang dikirimkan.</p>

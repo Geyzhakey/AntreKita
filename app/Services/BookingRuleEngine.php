@@ -193,30 +193,6 @@ class BookingRuleEngine
     }
 
     /**
-     * Demo helper: brings booking within H-5 window and immediately dispatches dual alerts.
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    public function simulatePreExpiryForBooking(Booking $booking): array
-    {
-        if ($booking->status !== 'active') {
-            return [];
-        }
-
-        $now = now();
-        if ($booking->ends_at->gt($now->copy()->addMinutes(5))) {
-            $booking->update([
-                'ends_at' => $now->copy()->addMinutes(4)->addSeconds(30),
-                'reminder_sent_at' => null,
-            ]);
-        } else {
-            $booking->update(['reminder_sent_at' => null]);
-        }
-
-        return $this->processPreExpiryAlerts($now);
-    }
-
-    /**
      * Complete active session via Slide-to-Finish and cascade waiting list User 02 -> Active.
      *
      * @return array{promoted: ?Booking, unit_status: string}
@@ -286,28 +262,6 @@ class BookingRuleEngine
 
     protected function logDualChannel(Booking $booking, User $user, string $triggerType, string $message): void
     {
-        $now = now();
-
-        if ($user->whatsapp_number) {
-            NotificationLog::create([
-                'booking_id' => $booking->id,
-                'user_id' => $user->id,
-                'channel' => 'whatsapp',
-                'recipient' => $user->whatsapp_number,
-                'trigger_type' => $triggerType,
-                'message' => $message,
-                'sent_at' => $now,
-            ]);
-        }
-
-        NotificationLog::create([
-            'booking_id' => $booking->id,
-            'user_id' => $user->id,
-            'channel' => 'email',
-            'recipient' => $user->email,
-            'trigger_type' => $triggerType,
-            'message' => $message,
-            'sent_at' => $now,
-        ]);
+        app(NotificationDispatcher::class)->dispatchDualChannel($booking, $user, $triggerType, $message);
     }
 }

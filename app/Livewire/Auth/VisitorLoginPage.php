@@ -69,12 +69,6 @@ class VisitorLoginPage extends Component
         $this->redirectIntended(route('visitor.institutions'), navigate: true);
     }
 
-    public function fillDemo(string $identifier): void
-    {
-        $this->identifier = $identifier;
-        $this->password = 'password';
-    }
-
     protected function ensureIsNotRateLimited(): void
     {
         if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {

@@ -123,6 +123,30 @@
                             class="input-field mt-1 w-full rounded-xl px-3 py-2 text-xs">
                     </div>
 
+                    <div class="surface-subtle space-y-2.5 rounded-xl p-3">
+                        <p class="text-[11px] font-bold uppercase tracking-wider text-[#0F6E56] dark:text-[#90DEC3]">Gateway WhatsApp Real-Time</p>
+                        <div>
+                            <label class="block text-[11px] font-semibold">Provider Gateway</label>
+                            <select wire:model="whatsapp_driver" class="input-field mt-1 w-full rounded-xl px-3 py-1.5 text-xs">
+                                <option value="fonnte">Fonnte (api.fonnte.com)</option>
+                                <option value="wablas">Wablas</option>
+                                <option value="waha">WAHA (Self-Hosted)</option>
+                                <option value="meta">Meta WhatsApp Cloud API</option>
+                                <option value="webhook">Custom Webhook</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold">API Token / Key</label>
+                            <input type="password" wire:model="whatsapp_api_token" placeholder="Masukkan token gateway aktif"
+                                class="input-field mt-1 w-full rounded-xl px-3 py-1.5 font-mono text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold">Custom Endpoint URL (Opsional untuk Fonnte)</label>
+                            <input type="url" wire:model="whatsapp_api_url" placeholder="https://api.fonnte.com/send"
+                                class="input-field mt-1 w-full rounded-xl px-3 py-1.5 font-mono text-xs">
+                        </div>
+                    </div>
+
                     <label class="surface-subtle flex items-center justify-between rounded-xl p-3 text-xs font-semibold">
                         <span>Kunci Booking Global (Mode Maintenance)</span>
                         <input type="checkbox" wire:model="booking_maintenance_mode" class="rounded border-[#CBE8DC] text-[#0F6E56]">

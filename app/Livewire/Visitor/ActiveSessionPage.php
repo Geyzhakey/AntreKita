@@ -5,6 +5,7 @@ namespace App\Livewire\Visitor;
 use App\Models\Booking;
 use App\Models\NotificationLog;
 use App\Services\BookingRuleEngine;
+use App\Services\NotificationDispatcher;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -18,21 +19,28 @@ class ActiveSessionPage extends Component
 
     public bool $checkPersonalItems = false;
 
-    public function simulateHMinus5(BookingRuleEngine $engine): void
+    public function mount(BookingRuleEngine $engine): void
     {
-        $booking = $this->currentBooking();
-        if (! $booking || $booking->status !== 'active') {
+        $this->checkRealtimeStatus($engine);
+    }
+
+    public function checkRealtimeStatus(BookingRuleEngine $engine): void
+    {
+        $user = Auth::user();
+        if (! $user) {
             return;
         }
 
-        $alerts = $engine->simulatePreExpiryForBooking($booking);
+        $alerts = $engine->processPreExpiryAlerts();
 
         foreach ($alerts as $alert) {
-            $this->dispatch('wa-notify', [
-                'title' => $alert['type'] === 'h_minus_5_active' ? 'WA H-5 Menit (User Aktif)' : 'WA H-5 Menit (User Waiting List)',
-                'recipient' => $alert['recipient'],
-                'message' => $alert['message'],
-            ]);
+            if ((int) ($alert['user_id'] ?? 0) === (int) $user->id) {
+                $this->dispatch('wa-notify', [
+                    'title' => $alert['type'] === 'h_minus_5_active' ? 'Pengingat H-5 Menit' : 'Giliran Dimulai Sebentar Lagi',
+                    'recipient' => $alert['recipient'],
+                    'message' => $alert['message'],
+                ]);
+            }
         }
     }
 
@@ -90,6 +98,8 @@ class ActiveSessionPage extends Component
             'nextWaiting' => $nextWaiting,
             'logs' => $logs,
             'checklistComplete' => $this->checkDeskClean && $this->checkChairsArranged && $this->checkPersonalItems,
+            'waConfigured' => NotificationDispatcher::isWhatsAppConfigured(),
+            'emailConfigured' => NotificationDispatcher::isEmailConfigured(),
         ]);
     }
 }
