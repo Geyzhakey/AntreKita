@@ -119,7 +119,7 @@ class DatabaseSeeder extends Seeder
                 'username' => 'admin_ui',
                 'admin_name' => 'Admin Perpustakaan UI',
                 'wa' => '+6281200001001',
-                'reg_code' => 'LBR1UI26',
+                'reg_code' => ' ',
                 'name' => 'Perpustakaan Universitas Indonesia',
                 'slug' => 'perpus-ui',
                 'city' => 'Depok',

@@ -1,4 +1,4 @@
-<div wire:poll.5s="checkRealtimeStatus" class="space-y-6">
+<div wire:poll.5s="checkRealtimeStatus" wire:key="booking-status-{{ $booking->id }}-{{ $booking->status }}" class="space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
             <span class="rounded-md bg-[#90DEC3] px-2.5 py-1 font-mono text-[10px] font-bold text-[#0E241E]">KARTU BACA DIGITAL &middot; HANDOVER H-5 MENIT</span>
@@ -23,9 +23,6 @@
         </div>
     @else
         @php
-            $targetTimestamp = $booking->status === 'active'
-                ? $booking->ends_at->timestamp
-                : ($activeHolder?->ends_at->timestamp ?? $booking->starts_at->timestamp);
             $isPreExpiry = $booking->isInPreExpiryWindow();
         @endphp
 
@@ -58,10 +55,27 @@
 
                     <div
                         x-data="{
-                            target: {{ $targetTimestamp }},
+                            status: '{{ $booking->status }}',
+                            startsAt: {{ $booking->starts_at->timestamp }},
+                            endsAt: {{ $booking->ends_at->timestamp }},
+                            started: false,
                             display: '00:00:00',
                             tick() {
-                                const diff = Math.max(0, this.target - Math.floor(Date.now() / 1000));
+                                const now = Math.floor(Date.now() / 1000);
+                                this.started = now >= this.startsAt;
+
+                                // ketika waktunya belum mulai, timernya tidak berjalan
+                                if (this.status !== 'active' || !this.started) {
+                                    const totalDuration = Math.max(0, this.endsAt - this.startsAt);
+                                    const h = String(Math.floor(totalDuration / 3600)).padStart(2, '0');
+                                    const m = String(Math.floor((totalDuration % 3600) / 60)).padStart(2, '0');
+                                    const s = String(totalDuration % 60).padStart(2, '0');
+                                    this.display = `${h}:${m}:${s}`;
+                                    return;
+                                }
+
+                                // kalau waktunya sudah mulai, timernya berjalan
+                                const diff = Math.max(0, this.endsAt - now);
                                 const h = String(Math.floor(diff / 3600)).padStart(2, '0');
                                 const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
                                 const s = String(diff % 60).padStart(2, '0');
@@ -69,11 +83,10 @@
                             }
                         }"
                         x-init="tick(); setInterval(() => tick(), 1000)"
-                        x-effect="target = {{ $targetTimestamp }}"
                         class="surface-subtle mt-5 rounded-2xl p-5"
                     >
-                        <p class="text-xs font-semibold text-[#47625A] dark:text-[#98B4AC]">
-                            {{ $booking->status === 'active' ? 'Sisa Waktu Penggunaan (Live Countdown)' : 'Estimasi Giliran Anda Dimulai Dalam' }}
+                        <p class="text-xs font-semibold text-[#47625A] dark:text-[#98B4AC]"
+                           x-text="status === 'active' && started ? 'Sisa Waktu Penggunaan (Live Countdown)' : 'Durasi Total Reservasi (belum berjalan)'">
                         </p>
                         <div class="mt-1.5 flex flex-wrap items-baseline justify-between gap-2">
                             <span class="font-mono text-3xl font-extrabold tracking-tight tabular-nums" x-text="display">00:00:00</span>

@@ -52,7 +52,7 @@ class VisitorLoginPage extends Component
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'identifier' => 'Kredensial Visitor atau kata sandi tidak sesuai.',
+                'identifier' => 'user atau kata sandi tidak sesuai.',
             ]);
         }
 
