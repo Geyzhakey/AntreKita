@@ -69,6 +69,19 @@ class NotificationDispatcher
     {
         $now = now();
 
+        NotificationLog::create([
+            'booking_id' => $booking->id,
+            'user_id' => $user->id,
+            'channel' => 'account',
+            'recipient' => $user->username ?: $user->name,
+            'trigger_type' => $triggerType,
+            'message' => $message,
+            'status' => 'sent',
+            'error_message' => null,
+            'sent_at' => $now,
+            'read_at' => null,
+        ]);
+
         if ($user->whatsapp_number) {
             [$waStatus, $waError] = $this->sendWhatsApp($user->whatsapp_number, $message, $triggerType);
 

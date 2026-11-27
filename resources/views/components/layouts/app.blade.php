@@ -107,6 +107,10 @@
                 </button>
 
                 @auth
+                    @if (auth()->user()->isVisitor())
+                        <livewire:visitor.notification-watcher />
+                    @endif
+
                     <div class="surface-subtle hidden items-center gap-2 rounded-lg py-1 pr-3 pl-1.5 sm:flex">
                         <span class="flex h-6 w-6 items-center justify-center rounded-md bg-[#0F6E56] font-mono text-[10px] font-bold text-[#90DEC3] dark:bg-[#90DEC3] dark:text-[#0B1F19]">
                             {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}

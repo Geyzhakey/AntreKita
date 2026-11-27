@@ -106,6 +106,10 @@ class BookingRuleEngineTest extends TestCase
 
         $alerts = $engine->processPreExpiryAlerts($now);
         $this->assertCount(2, $alerts);
+        $this->assertMatchesRegularExpression(
+            '/^Selamat (pagi|siang|sore|malam), ' . preg_quote($user1->name, '/') . '!.*Ruang Diskusi 3 \(Ruang03\)/',
+            $alerts[0]['message']
+        );
 
         $result = $engine->slideToFinish($b1->fresh(), $user1);
         $this->assertNotNull($result['promoted']);

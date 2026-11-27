@@ -89,6 +89,12 @@ class NotificationDispatcherTest extends TestCase
 
         $this->assertDatabaseHas('notification_logs', [
             'user_id' => $visitor->id,
+            'channel' => 'account',
+            'status' => 'sent',
+        ]);
+
+        $this->assertDatabaseHas('notification_logs', [
+            'user_id' => $visitor->id,
             'channel' => 'whatsapp',
             'status' => 'sent',
         ]);
@@ -151,6 +157,12 @@ class NotificationDispatcherTest extends TestCase
             'booking_confirmed',
             'Test'
         );
+
+        $this->assertDatabaseHas('notification_logs', [
+            'user_id' => $visitor->id,
+            'channel' => 'account',
+            'status' => 'sent',
+        ]);
 
         $this->assertSame(2, NotificationLog::where('status', 'unconfigured')->count());
     }

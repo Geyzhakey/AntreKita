@@ -175,8 +175,8 @@
                         @endphp
                         <div class="surface-subtle rounded-xl p-3.5 text-xs">
                             <div class="flex flex-wrap items-center justify-between gap-2">
-                                <span class="font-mono text-[11px] font-bold {{ $log->channel === 'whatsapp' ? 'text-[#0F6E56] dark:text-[#90DEC3]' : 'text-[#47625A] dark:text-[#98B4AC]' }}">
-                                    {{ strtoupper($log->channel) }} &rarr; {{ $log->recipient }}
+                                <span class="font-mono text-[11px] font-bold {{ in_array($log->channel, ['whatsapp', 'account'], true) ? 'text-[#0F6E56] dark:text-[#90DEC3]' : 'text-[#47625A] dark:text-[#98B4AC]' }}">
+                                    {{ $log->channel === 'account' ? 'AKUN' : strtoupper($log->channel) }} &rarr; {{ $log->channel === 'account' ? '@' . $log->recipient : $log->recipient }}
                                 </span>
                                 <div class="flex items-center gap-1.5">
                                     <span class="rounded px-1.5 py-0.5 font-mono text-[10px] font-bold {{ $badgeClass }}">{{ $badgeLabel }}</span>

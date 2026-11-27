@@ -120,9 +120,11 @@ class BookingRuleEngine
             ]);
 
             $timeRange = $startsAt->format('H:i') . ' - ' . $endsAt->format('H:i');
+            $greeting = $this->timeOfDayGreeting();
+            $username = $this->displayUsername($user);
             $msg = $status === 'active'
-                ? "Booking {$lockedUnit->code} dikonfirmasi untuk pukul {$timeRange}. Harap jaga kebersihan dan geser tombol SELESAI saat usai."
-                : "Anda masuk Waiting List {$lockedUnit->code} untuk slot {$timeRange}. Kami akan memberi notifikasi 5 menit sebelum giliran dimulai.";
+                ? "{$greeting}, {$username}! Reservasi {$lockedUnit->name} ({$lockedUnit->code}) dikonfirmasi untuk pukul {$timeRange} WIB. Harap jaga kebersihan dan geser tombol SELESAI saat usai."
+                : "{$greeting}, {$username}! Kamu masuk Waiting List {$lockedUnit->name} ({$lockedUnit->code}) untuk slot {$timeRange} WIB. Pengingat otomatis akan dikirim 5 menit sebelum giliran dimulai.";
 
             $this->logDualChannel($booking, $user, 'booking_confirmed', $msg);
 
@@ -159,8 +161,10 @@ class BookingRuleEngine
                 $activeUser = $booking->user;
                 $minutesLeft = max(1, (int) ceil($now->diffInSeconds($locked->ends_at, false) / 60));
                 $minutesLabel = min(5, $minutesLeft);
+                $greeting = $this->timeOfDayGreeting($now);
+                $activeUsername = $this->displayUsername($activeUser);
 
-                $activeMsg = "Waktu penggunaan {$unit->code} tersisa {$minutesLabel} menit. Harap bersiap mengakhiri giliran, merapikan meja/kursi, dan menggeser tombol SELESAI.";
+                $activeMsg = "{$greeting}, {$activeUsername}! Masa penggunaan {$unit->name} ({$unit->code}) yang kamu gunakan akan berakhir dalam {$minutesLabel} menit (pukul {$locked->ends_at->format('H:i')} WIB). Mohon untuk mempersiapkan diri, merapikan meja/kursi, memeriksa barang bawaan, dan menggeser tombol SELESAI saat waktu usai.";
                 $this->logDualChannel($locked, $activeUser, 'h_minus_5_active', $activeMsg);
 
                 $dispatched[] = [
@@ -173,7 +177,8 @@ class BookingRuleEngine
 
                 $nextWaiting = $unit->waitingBookings()->with('user')->first();
                 if ($nextWaiting && $nextWaiting->user) {
-                    $waitingMsg = "Bersiap! Giliran Anda untuk menggunakan {$unit->code} akan dimulai dalam {$minutesLabel} menit.";
+                    $waitingUsername = $this->displayUsername($nextWaiting->user);
+                    $waitingMsg = "{$greeting}, {$waitingUsername}! Bersiap ya, giliran kamu untuk menggunakan {$unit->name} ({$unit->code}) akan dimulai dalam {$minutesLabel} menit.";
                     $this->logDualChannel($nextWaiting, $nextWaiting->user, 'h_minus_5_waiting', $waitingMsg);
 
                     $dispatched[] = [
@@ -246,7 +251,9 @@ class BookingRuleEngine
                     ]);
 
                     $unitCode = $locked->facilityUnit->code;
-                    $handoverMsg = "{$unitCode} sudah siap dan bersih! Giliran Anda sekarang aktif hingga pukul {$newEnd->format('H:i')}.";
+                    $greeting = $this->timeOfDayGreeting($now);
+                    $nextUsername = $this->displayUsername($next->user);
+                    $handoverMsg = "{$greeting}, {$nextUsername}! {$locked->facilityUnit->name} ({$unitCode}) sudah siap dan bersih. Giliran kamu sekarang aktif hingga pukul {$newEnd->format('H:i')} WIB.";
                     $this->logDualChannel($next, $next->user, 'handover_ready', $handoverMsg);
 
                     $promoted = $next->fresh();
@@ -258,6 +265,30 @@ class BookingRuleEngine
                 'unit_status' => $promoted ? 'in_used' : 'available',
             ];
         });
+    }
+
+    protected function timeOfDayGreeting(?Carbon $now = null): string
+    {
+        $hour = ($now ?? now())->hour;
+
+        if ($hour >= 4 && $hour <= 10) {
+            return 'Selamat pagi';
+        }
+
+        if ($hour >= 11 && $hour <= 14) {
+            return 'Selamat siang';
+        }
+
+        if ($hour >= 15 && $hour <= 17) {
+            return 'Selamat sore';
+        }
+
+        return 'Selamat malam';
+    }
+
+    protected function displayUsername(User $user): string
+    {
+        return trim((string) ($user->username ?: $user->name));
     }
 
     protected function logDualChannel(Booking $booking, User $user, string $triggerType, string $message): void
