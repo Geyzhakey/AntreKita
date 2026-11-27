@@ -4,9 +4,11 @@ namespace App\Livewire\Visitor;
 
 use App\Models\Booking;
 use App\Models\NotificationLog;
+use App\Models\SystemSetting;
 use App\Services\BookingRuleEngine;
 use App\Services\NotificationDispatcher;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -19,8 +21,24 @@ class ActiveSessionPage extends Component
 
     public bool $checkPersonalItems = false;
 
+    public bool $showGatewaySetup = false;
+
+    public string $smtp_username = '';
+
+    public string $smtp_password = '';
+
+    public string $wa_pairing_phone = '';
+
+    public ?string $wa_pairing_code = null;
+
+    public string $gatewayError = '';
+
     public function mount(BookingRuleEngine $engine): void
     {
+        $user = Auth::user();
+        $this->smtp_username = SystemSetting::getValue('smtp_username') ?: ($user?->email ?? '');
+        $this->wa_pairing_phone = $user?->whatsapp_number ?? '';
+
         $this->checkRealtimeStatus($engine);
     }
 
@@ -42,6 +60,107 @@ class ActiveSessionPage extends Component
                 ]);
             }
         }
+
+        if (NotificationDispatcher::isWhatsAppConfigured() || NotificationDispatcher::isEmailConfigured()) {
+            app(NotificationDispatcher::class)->retryPendingForUser($user);
+        }
+    }
+
+    public function toggleGatewaySetup(): void
+    {
+        $this->showGatewaySetup = ! $this->showGatewaySetup;
+        $this->gatewayError = '';
+    }
+
+    public function requestWaPairingCode(): void
+    {
+        $this->gatewayError = '';
+        $phone = trim($this->wa_pairing_phone ?: (Auth::user()?->whatsapp_number ?? ''));
+        if ($phone === '') {
+            $this->gatewayError = 'Masukkan nomor WhatsApp terlebih dahulu (contoh: 081222822531).';
+
+            return;
+        }
+
+        try {
+            $res = Http::timeout(8)->post(NotificationDispatcher::LOCAL_WA_URL . '/pair', [
+                'phone' => $phone,
+            ]);
+
+            if ($res->successful() && $res->json('ok')) {
+                $this->wa_pairing_code = (string) $res->json('pairingCode');
+            } else {
+                $this->gatewayError = (string) ($res->json('reason') ?? 'Gagal meminta kode tautan.');
+            }
+        } catch (\Throwable $e) {
+            $this->gatewayError = 'Gateway WhatsApp lokal belum merespons: ' . $e->getMessage();
+        }
+    }
+
+    public function resetWaGateway(): void
+    {
+        $this->gatewayError = '';
+        $this->wa_pairing_code = null;
+
+        try {
+            Http::timeout(5)->post(NotificationDispatcher::LOCAL_WA_URL . '/reset');
+        } catch (\Throwable $e) {
+            $this->gatewayError = 'Gagal mereset sesi WA: ' . $e->getMessage();
+        }
+    }
+
+    public function saveSmtpInline(NotificationDispatcher $dispatcher): void
+    {
+        $this->gatewayError = '';
+
+        $validated = $this->validate([
+            'smtp_username' => ['required', 'email'],
+            'smtp_password' => ['required', 'string', 'min:8'],
+        ]);
+
+        $cleanPass = preg_replace('/\s+/', '', trim($validated['smtp_password']));
+
+        SystemSetting::setValue('smtp_host', 'smtp.gmail.com');
+        SystemSetting::setValue('smtp_port', '587');
+        SystemSetting::setValue('smtp_username', trim($validated['smtp_username']));
+        SystemSetting::setValue('smtp_password', $cleanPass);
+        SystemSetting::setValue('smtp_from_address', trim($validated['smtp_username']));
+
+        $this->smtp_password = '';
+
+        $user = Auth::user();
+        $retried = $user ? $dispatcher->retryPendingForUser($user) : 0;
+
+        $this->dispatch('wa-notify', [
+            'title' => 'SMTP Email Aktif',
+            'recipient' => trim($validated['smtp_username']),
+            'message' => $retried > 0
+                ? "SMTP Gmail berhasil disimpan dan {$retried} notifikasi tertunda langsung diproses!"
+                : 'SMTP Gmail berhasil disimpan. Email akan terkirim otomatis mulai reservasi berikutnya.',
+        ]);
+    }
+
+    public function retryNotification(int $logId, NotificationDispatcher $dispatcher): void
+    {
+        $user = Auth::user();
+        if (! $user) {
+            return;
+        }
+
+        $log = NotificationLog::where('user_id', $user->id)->find($logId);
+        if (! $log) {
+            return;
+        }
+
+        $updated = $dispatcher->retryLog($log);
+
+        $this->dispatch('wa-notify', [
+            'title' => $updated->status === 'sent' ? 'Berhasil Dikirim Ulang' : 'Pengiriman Belum Berhasil',
+            'recipient' => $updated->recipient,
+            'message' => $updated->status === 'sent'
+                ? 'Notifikasi berhasil dikirim ke tujuan.'
+                : ($updated->error_message ?? 'Periksa koneksi gateway terlebih dahulu.'),
+        ]);
     }
 
     public function finishSession(BookingRuleEngine $engine): void
@@ -100,6 +219,7 @@ class ActiveSessionPage extends Component
             'checklistComplete' => $this->checkDeskClean && $this->checkChairsArranged && $this->checkPersonalItems,
             'waConfigured' => NotificationDispatcher::isWhatsAppConfigured(),
             'emailConfigured' => NotificationDispatcher::isEmailConfigured(),
+            'localWa' => NotificationDispatcher::getLocalWaStatus(),
         ]);
     }
 }

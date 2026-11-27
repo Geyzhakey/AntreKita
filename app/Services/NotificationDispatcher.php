@@ -7,12 +7,44 @@ use App\Models\Booking;
 use App\Models\NotificationLog;
 use App\Models\SystemSetting;
 use App\Models\User;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class NotificationDispatcher
 {
+    public const LOCAL_WA_URL = 'http://127.0.0.1:3001';
+
+    public static function getLocalWaStatus(): array
+    {
+        try {
+            $res = Http::timeout(2)->get(self::LOCAL_WA_URL . '/status');
+            if ($res->successful() && is_array($json = $res->json())) {
+                return [
+                    'running' => true,
+                    'connected' => (bool) ($json['connected'] ?? false),
+                    'status' => (string) ($json['status'] ?? 'idle'),
+                    'qr' => $json['qr'] ?? null,
+                    'phone' => $json['phone'] ?? null,
+                    'pairingCode' => $json['pairingCode'] ?? null,
+                    'lastError' => $json['lastError'] ?? null,
+                ];
+            }
+        } catch (\Throwable) {
+        }
+
+        return [
+            'running' => false,
+            'connected' => false,
+            'status' => 'offline',
+            'qr' => null,
+            'phone' => null,
+            'pairingCode' => null,
+            'lastError' => null,
+        ];
+    }
+
     public static function getWhatsAppConfig(): array
     {
         $driver = SystemSetting::getValue('whatsapp_driver') ?: config('services.whatsapp.driver', 'fonnte');
@@ -30,7 +62,7 @@ class NotificationDispatcher
         ];
     }
 
-    public static function isWhatsAppConfigured(): bool
+    public static function hasExternalWhatsAppConfig(): bool
     {
         $cfg = self::getWhatsAppConfig();
 
@@ -45,8 +77,37 @@ class NotificationDispatcher
         return $cfg['token'] !== '';
     }
 
+    public static function isWhatsAppConfigured(): bool
+    {
+        if (self::hasExternalWhatsAppConfig()) {
+            return true;
+        }
+
+        return self::getLocalWaStatus()['connected'] === true;
+    }
+
+    public static function applyRuntimeMailConfig(): void
+    {
+        $smtpUser = trim((string) (SystemSetting::getValue('smtp_username') ?? ''));
+        $smtpPass = trim((string) (SystemSetting::getValue('smtp_password') ?? ''));
+
+        if ($smtpUser !== '' && $smtpPass !== '') {
+            Config::set('mail.default', 'smtp');
+            Config::set('mail.mailers.smtp.host', SystemSetting::getValue('smtp_host', 'smtp.gmail.com') ?: 'smtp.gmail.com');
+            Config::set('mail.mailers.smtp.port', (int) (SystemSetting::getValue('smtp_port', '587') ?: 587));
+            Config::set('mail.mailers.smtp.scheme', 'tls');
+            Config::set('mail.mailers.smtp.username', $smtpUser);
+            Config::set('mail.mailers.smtp.password', $smtpPass);
+            Config::set('mail.from.address', SystemSetting::getValue('smtp_from_address', $smtpUser) ?: $smtpUser);
+            Config::set('mail.from.name', 'AntreKita');
+            Mail::purge('smtp');
+        }
+    }
+
     public static function isEmailConfigured(): bool
     {
+        self::applyRuntimeMailConfig();
+
         $mailer = (string) config('mail.default', 'log');
         if (in_array($mailer, ['log', 'array'], true)) {
             return false;
@@ -120,15 +181,37 @@ class NotificationDispatcher
      */
     public function sendWhatsApp(string $recipient, string $message, string $triggerType = 'notification'): array
     {
-        if (! self::isWhatsAppConfigured()) {
-            return ['unconfigured', 'Token/URL WhatsApp Gateway belum diisi di .env atau Pengaturan Developer.'];
-        }
-
-        $cfg = self::getWhatsAppConfig();
         $digits = preg_replace('/[^\d]/', '', $recipient);
         if (str_starts_with($digits, '0')) {
             $digits = '62' . substr($digits, 1);
         }
+
+        if (! self::hasExternalWhatsAppConfig()) {
+            $local = self::getLocalWaStatus();
+            if ($local['connected']) {
+                try {
+                    $response = Http::timeout(10)->post(self::LOCAL_WA_URL . '/send', [
+                        'to' => $digits,
+                        'message' => $message,
+                    ]);
+
+                    if ($response->successful()) {
+                        return ['sent', null];
+                    }
+
+                    $reason = (string) ($response->json('reason') ?? "HTTP {$response->status()}");
+                    Log::warning('AntreKita local WA delivery failed', ['recipient' => $digits, 'reason' => $reason]);
+
+                    return ['failed', $reason];
+                } catch (\Throwable $e) {
+                    return ['failed', mb_substr($e->getMessage(), 0, 220)];
+                }
+            }
+
+            return ['unconfigured', 'Scan QR WhatsApp pada panel di atas untuk mengaktifkan pengiriman otomatis.'];
+        }
+
+        $cfg = self::getWhatsAppConfig();
 
         try {
             $response = match ($cfg['driver']) {
@@ -217,5 +300,60 @@ class NotificationDispatcher
 
             return ['failed', mb_substr($e->getMessage(), 0, 220)];
         }
+    }
+
+    public function retryLog(NotificationLog $log): NotificationLog
+    {
+        if ($log->channel === 'whatsapp') {
+            [$status, $error] = $this->sendWhatsApp($log->recipient, $log->message, $log->trigger_type);
+            $log->update([
+                'status' => $status,
+                'error_message' => $error,
+                'sent_at' => now(),
+            ]);
+        } elseif ($log->channel === 'email' && $log->booking && $log->user) {
+            [$status, $error] = $this->sendEmail($log->booking, $log->user, $log->trigger_type, $log->message);
+            $log->update([
+                'status' => $status,
+                'error_message' => $error,
+                'sent_at' => now(),
+            ]);
+        }
+
+        return $log->fresh();
+    }
+
+    public function retryPendingForUser(User $user): int
+    {
+        $waReady = self::isWhatsAppConfigured();
+        $emailReady = self::isEmailConfigured();
+
+        if (! $waReady && ! $emailReady) {
+            return 0;
+        }
+
+        $channels = [];
+        if ($waReady) {
+            $channels[] = 'whatsapp';
+        }
+        if ($emailReady) {
+            $channels[] = 'email';
+        }
+
+        $pending = NotificationLog::with(['booking', 'user'])
+            ->where('user_id', $user->id)
+            ->whereIn('channel', $channels)
+            ->where('status', '!=', 'sent')
+            ->get();
+
+        $sentCount = 0;
+        foreach ($pending as $log) {
+            $updated = $this->retryLog($log);
+            if ($updated->status === 'sent') {
+                $sentCount++;
+            }
+        }
+
+        return $sentCount;
     }
 }

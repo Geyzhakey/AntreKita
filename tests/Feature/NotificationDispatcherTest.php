@@ -108,7 +108,12 @@ class NotificationDispatcherTest extends TestCase
 
     public function test_marks_unconfigured_when_gateways_have_no_credentials(): void
     {
+        Http::fake([
+            NotificationDispatcher::LOCAL_WA_URL . '/*' => Http::response(['connected' => false], 200),
+        ]);
         Config::set('mail.default', 'log');
+        SystemSetting::setValue('smtp_username', '');
+        SystemSetting::setValue('smtp_password', '');
         SystemSetting::setValue('whatsapp_api_token', '');
         Config::set('services.whatsapp.token', '');
 
