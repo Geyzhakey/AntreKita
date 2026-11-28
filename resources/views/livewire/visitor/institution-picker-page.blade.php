@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<div class="ak-fade-up space-y-6">
     <div class="flex flex-wrap items-end justify-between gap-4">
         <div>
             <span class="rounded-md bg-[#90DEC3] px-2.5 py-1 font-mono text-[10px] font-bold tracking-wider text-[#0E241E]">DIREKTORI FASILITAS</span>
@@ -10,7 +10,7 @@
 
         <div class="w-full sm:w-80">
             <input type="text" wire:model.live.debounce.250ms="search"
-                placeholder="Cari PUT PNJ, Perpus UI, Depok..."
+                placeholder="Cari PUT PNJ, Depok, atau lokasi mitra..."
                 class="input-field w-full rounded-xl px-4 py-2.5 text-sm">
         </div>
     </div>
@@ -44,7 +44,7 @@
                 $floorsCount = $inst->facilityUnits->pluck('floor')->unique()->count();
             @endphp
             <a href="{{ route('visitor.map', $inst->slug) }}" wire:navigate
-                class="surface-card group flex flex-col justify-between rounded-2xl border-t-4 border-t-[#90DEC3] p-6 transition duration-150 hover:-translate-y-0.5 hover:border-[#0F6E56]/55 dark:border-t-[#54C2A0] dark:hover:border-[#90DEC3]/55">
+                class="surface-card card-lift group flex flex-col justify-between rounded-2xl border-t-4 border-t-[#90DEC3] p-6 dark:border-t-[#54C2A0]">
                 <div>
                     <div class="flex items-start justify-between gap-3">
                         <div>

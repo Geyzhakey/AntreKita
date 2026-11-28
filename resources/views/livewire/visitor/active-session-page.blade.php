@@ -102,7 +102,7 @@
                                 {{ $nextWaiting ? 'Pengantre Berikutnya: ' . $nextWaiting->group_name : 'Belum ada pengguna di Waiting List' }}
                             </p>
                             <p class="mt-0.5 text-[11px] text-[#47625A] dark:text-[#98B4AC]">
-                                Pada H-5 menit sebelum selesai, pengingat otomatis terkirim ke WhatsApp &amp; Email secara real-time.
+                                Pada 5 menit sebelum waktu berakhir dan saat sesi selesai, ringkasan otomatis dikirim ke Email dan Kotak Akun Anda.
                             </p>
                         </div>
 
@@ -142,29 +142,23 @@
                 </div>
             </div>
 
-            <div class="surface-card rounded-2xl p-5 lg:col-span-5">
+            <div class="surface-card ak-fade-up ak-delay-1 rounded-2xl p-5 lg:col-span-5">
                 <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#CBE8DC] pb-3.5 dark:border-[#213531]">
                     <div>
-                        <h2 class="text-base font-bold tracking-tight">Log Notifikasi WhatsApp &amp; Email</h2>
-                        <p class="text-[11px] text-[#47625A] dark:text-[#98B4AC]">Status pengiriman langsung dari Sistem AntreKita.</p>
+                        <h2 class="text-base font-bold tracking-tight">Notifikasi Email &amp; Akun</h2>
+                        <p class="text-[11px] text-[#47625A] dark:text-[#98B4AC]">Dikirim otomatis via antrekita@gmail.com ke email Anda.</p>
                     </div>
-                    <div class="flex items-center gap-1.5">
-                        <button type="button" wire:click="toggleGatewaySetup"
-                            class="rounded-md px-2 py-0.5 font-mono text-[10px] font-bold transition hover:opacity-80 {{ $waConfigured ? 'bg-[#25D366]/20 text-[#0F6E56] dark:text-[#90DEC3]' : 'bg-amber-500/15 text-amber-800 dark:text-amber-300' }}">
-                            WA: {{ $waConfigured ? 'Aktif' : 'Belum Setup' }}
-                        </button>
-                        <button type="button" wire:click="toggleGatewaySetup"
-                            class="rounded-md px-2 py-0.5 font-mono text-[10px] font-bold transition hover:opacity-80 {{ $emailConfigured ? 'bg-[#25D366]/20 text-[#0F6E56] dark:text-[#90DEC3]' : 'bg-amber-500/15 text-amber-800 dark:text-amber-300' }}">
-                            SMTP: {{ $emailConfigured ? 'Aktif' : 'Belum Setup' }}
-                        </button>
-                    </div>
+                    <button type="button" wire:click="toggleGatewaySetup"
+                        class="rounded-md px-2.5 py-0.5 font-mono text-[10px] font-bold transition hover:opacity-80 {{ $emailConfigured ? 'bg-emerald-500/15 text-[#0F6E56] dark:text-[#90DEC3]' : 'bg-amber-500/15 text-amber-800 dark:text-amber-300' }}">
+                        SMTP: {{ $emailConfigured ? 'Aktif' : 'Perlu Setup' }}
+                    </button>
                 </div>
 
-                @if (! $waConfigured || ! $emailConfigured || $showGatewaySetup)
-                    <div class="surface-subtle mt-4 space-y-4 rounded-xl border border-[#CBE8DC] p-4 text-xs dark:border-[#213531]">
+                @if (! $emailConfigured || $showGatewaySetup)
+                    <div class="surface-subtle ak-fade-up mt-4 space-y-3 rounded-xl border border-[#CBE8DC] p-4 text-xs dark:border-[#213531]">
                         <div class="flex items-center justify-between gap-2">
-                            <p class="font-bold text-[#0F6E56] dark:text-[#90DEC3]">Hubungkan Pengiriman Otomatis (1-Klik di Browser)</p>
-                            @if ($waConfigured && $emailConfigured)
+                            <p class="font-bold text-[#0F6E56] dark:text-[#90DEC3]">Pengaturan Pengirim Email (SMTP)</p>
+                            @if ($emailConfigured)
                                 <button type="button" wire:click="toggleGatewaySetup" class="text-[11px] font-semibold text-[#47625A] hover:underline dark:text-[#98B4AC]">Tutup</button>
                             @endif
                         </div>
@@ -175,87 +169,18 @@
                             </div>
                         @endif
 
-                        {{-- WhatsApp Built-in Gateway --}}
-                        <div class="rounded-xl border border-[#CBE8DC] bg-[#F7FCFA]/80 p-3 dark:border-[#213531] dark:bg-[#0D1514]/60">
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="font-semibold">1. WhatsApp Otomatis</span>
-                                @if ($waConfigured)
-                                    <span class="rounded bg-emerald-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-800 dark:text-emerald-300">
-                                        Terhubung{{ !empty($localWa['phone']) ? ': +' . $localWa['phone'] : '' }}
-                                    </span>
-                                @else
-                                    <span class="rounded bg-amber-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-800 dark:text-amber-300">
-                                        {{ $localWa['running'] ? 'Menunggu Scan' : 'Gateway Offline' }}
-                                    </span>
-                                @endif
-                            </div>
-
-                            @if ($waConfigured)
-                                <div class="mt-2 flex items-center justify-between gap-2 text-[11px] text-[#47625A] dark:text-[#98B4AC]">
-                                    <span>Bot WhatsApp aktif dan mengirim pesan secara otomatis.</span>
-                                    <button type="button" wire:click="resetWaGateway" class="font-semibold text-rose-600 hover:underline dark:text-rose-400">
-                                        Ganti Perangkat
-                                    </button>
-                                </div>
-                            @elseif (! $localWa['running'])
-                                <p class="mt-1.5 text-[11px] text-[#47625A] dark:text-[#98B4AC]">
-                                    Gateway lokal sedang bersiap. Halaman ini akan terhubung otomatis dalam beberapa detik.
-                                </p>
-                            @else
-                                @if (! empty($localWa['qr']))
-                                    <div class="mt-2.5 flex flex-col items-center gap-2 rounded-lg bg-[#EEF8F4] p-3 dark:bg-[#131F1D]">
-                                        <img src="{{ $localWa['qr'] }}" alt="QR Tautkan WhatsApp AntreKita" class="h-44 w-44 rounded-lg border border-[#CBE8DC]">
-                                        <p class="text-center text-[11px] text-[#47625A] dark:text-[#98B4AC]">
-                                            Buka <strong>WhatsApp di HP &rsaquo; Perangkat Tertaut &rsaquo; Tautkan Perangkat</strong> lalu scan QR ini. Pesan tertunda langsung terkirim otomatis!
-                                        </p>
-                                    </div>
-                                @else
-                                    <p class="mt-2 text-[11px] text-[#47625A] dark:text-[#98B4AC]">Menyiapkan QR Code WhatsApp... ({{ $localWa['status'] }})</p>
-                                @endif
-
-                                <div class="mt-2.5 flex flex-wrap items-center gap-2">
-                                    <input type="text" wire:model="wa_pairing_phone" placeholder="0812..."
-                                        class="input-field flex-1 rounded-lg px-2.5 py-1.5 font-mono text-[11px]">
-                                    <button type="button" wire:click="requestWaPairingCode"
-                                        class="rounded-lg bg-[#0F6E56] px-2.5 py-1.5 text-[11px] font-semibold text-[#F7FCFA] hover:opacity-90 dark:bg-[#90DEC3] dark:text-[#0B1F19]">
-                                        Minta Kode 8-Digit
-                                    </button>
-                                </div>
-                                @if ($wa_pairing_code || !empty($localWa['pairingCode']))
-                                    <div class="mt-2 rounded-lg bg-[#90DEC3]/30 px-3 py-2 text-center font-mono text-sm font-extrabold tracking-widest text-[#0E241E] dark:text-[#90DEC3]">
-                                        KODE TAUTAN: {{ $wa_pairing_code ?: $localWa['pairingCode'] }}
-                                    </div>
-                                @endif
-                            @endif
-                        </div>
-
-                        {{-- Email SMTP 1-Click --}}
-                        <div class="rounded-xl border border-[#CBE8DC] bg-[#F7FCFA]/80 p-3 dark:border-[#213531] dark:bg-[#0D1514]/60">
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="font-semibold">2. Email Gmail Otomatis</span>
-                                @if ($emailConfigured)
-                                    <span class="rounded bg-emerald-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-800 dark:text-emerald-300">SMTP Aktif</span>
-                                @else
-                                    <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener noreferrer"
-                                        class="text-[10px] font-semibold text-[#0F6E56] underline dark:text-[#90DEC3]">
-                                        Buat App Password Google &nearr;
-                                    </a>
-                                @endif
-                            </div>
-
-                            <form wire:submit="saveSmtpInline" class="mt-2 space-y-2">
-                                <input type="email" wire:model="smtp_username" required placeholder="Email Gmail pengirim (contoh: nama@gmail.com)"
-                                    class="input-field w-full rounded-lg px-2.5 py-1.5 text-[11px]">
-                                <input type="password" wire:model="smtp_password" required placeholder="16-Digit App Password Google"
-                                    class="input-field w-full rounded-lg px-2.5 py-1.5 font-mono text-[11px]">
-                                @error('smtp_username') <p class="text-[10px] text-rose-600">{{ $message }}</p> @enderror
-                                @error('smtp_password') <p class="text-[10px] text-rose-600">{{ $message }}</p> @enderror
-                                <button type="submit"
-                                    class="btn-brand w-full rounded-lg px-3 py-1.5 text-[11px] font-semibold">
-                                    Simpan &amp; Kirim Email Sekarang
-                                </button>
-                            </form>
-                        </div>
+                        <form wire:submit="saveSmtpInline" class="space-y-2">
+                            <input type="email" wire:model="smtp_username" required placeholder="Email pengirim (contoh: antrekita@gmail.com)"
+                                class="input-field w-full rounded-lg px-2.5 py-1.5 text-[11px]">
+                            <input type="password" wire:model="smtp_password" required placeholder="Password / App Password Google"
+                                class="input-field w-full rounded-lg px-2.5 py-1.5 font-mono text-[11px]">
+                            @error('smtp_username') <p class="text-[10px] text-rose-600">{{ $message }}</p> @enderror
+                            @error('smtp_password') <p class="text-[10px] text-rose-600">{{ $message }}</p> @enderror
+                            <button type="submit"
+                                class="btn-brand w-full rounded-lg px-3 py-1.5 text-[11px] font-semibold">
+                                Simpan &amp; Kirim Ulang Email
+                            </button>
+                        </form>
                     </div>
                 @endif
 
@@ -274,10 +199,10 @@
                                 default => 'Perlu Setup',
                             };
                         @endphp
-                        <div class="surface-subtle rounded-xl p-3.5 text-xs">
+                        <div class="surface-subtle rounded-xl p-3.5 text-xs transition hover:border-[#0F6E56]/35">
                             <div class="flex flex-wrap items-center justify-between gap-2">
-                                <span class="font-mono text-[11px] font-bold {{ in_array($log->channel, ['whatsapp', 'account'], true) ? 'text-[#0F6E56] dark:text-[#90DEC3]' : 'text-[#47625A] dark:text-[#98B4AC]' }}">
-                                    {{ $log->channel === 'account' ? 'AKUN' : strtoupper($log->channel) }} &rarr; {{ $log->channel === 'account' ? '@' . $log->recipient : $log->recipient }}
+                                <span class="font-mono text-[11px] font-bold {{ $log->channel === 'account' ? 'text-[#0F6E56] dark:text-[#90DEC3]' : 'text-[#47625A] dark:text-[#98B4AC]' }}">
+                                    {{ $log->channel === 'account' ? 'AKUN' : 'EMAIL' }} &rarr; {{ $log->channel === 'account' ? '@' . $log->recipient : $log->recipient }}
                                 </span>
                                 <div class="flex items-center gap-1.5">
                                     <span class="rounded px-1.5 py-0.5 font-mono text-[10px] font-bold {{ $badgeClass }}">{{ $badgeLabel }}</span>
@@ -290,21 +215,12 @@
                                     {{ $log->error_message }}
                                 </p>
                             @endif
-                            @if ($logStatus !== 'sent' || $log->channel === 'whatsapp')
+                            @if ($logStatus !== 'sent')
                                 <div class="mt-2 flex flex-wrap items-center gap-2">
-                                    @if ($logStatus !== 'sent')
-                                        <button type="button" wire:click="retryNotification({{ $log->id }})"
-                                            class="rounded-md border border-[#0F6E56]/40 px-2 py-0.5 text-[10px] font-semibold text-[#0F6E56] hover:bg-[#90DEC3]/25 dark:border-[#90DEC3]/40 dark:text-[#90DEC3]">
-                                            Kirim Ulang
-                                        </button>
-                                    @endif
-                                    @if ($log->channel === 'whatsapp' && $logStatus !== 'sent')
-                                        <a href="https://wa.me/{{ preg_replace('/[^\d]/', '', $log->recipient) }}?text={{ urlencode($log->message) }}"
-                                            target="_blank" rel="noopener noreferrer"
-                                            class="rounded-md bg-[#25D366]/20 px-2 py-0.5 text-[10px] font-semibold text-[#0F6E56] hover:bg-[#25D366]/30 dark:text-[#90DEC3]">
-                                            Kirim via WA &nearr;
-                                        </a>
-                                    @endif
+                                    <button type="button" wire:click="retryNotification({{ $log->id }})"
+                                        class="rounded-md border border-[#0F6E56]/40 px-2 py-0.5 text-[10px] font-semibold text-[#0F6E56] hover:bg-[#90DEC3]/25 dark:border-[#90DEC3]/40 dark:text-[#90DEC3]">
+                                        Kirim Ulang Email
+                                    </button>
                                 </div>
                             @endif
                         </div>

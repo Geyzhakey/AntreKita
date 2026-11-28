@@ -164,13 +164,13 @@ class BookingRuleEngine
                 $greeting = $this->timeOfDayGreeting($now);
                 $activeUsername = $this->displayUsername($activeUser);
 
-                $activeMsg = "{$greeting}, {$activeUsername}! Masa penggunaan {$unit->name} ({$unit->code}) yang kamu gunakan akan berakhir dalam {$minutesLabel} menit (pukul {$locked->ends_at->format('H:i')} WIB). Mohon untuk mempersiapkan diri, merapikan meja/kursi, memeriksa barang bawaan, dan menggeser tombol SELESAI saat waktu usai.";
+                $activeMsg = "{$greeting}, {$activeUsername}! Masa penggunaan {$unit->name} ({$unit->code}) yang sedang kamu gunakan akan segera berakhir dalam {$minutesLabel} menit (pukul {$locked->ends_at->format('H:i')} WIB). Mohon segera persiapkan barang-barang pribadi dan pastikan tidak ada barang yang tertinggal.";
                 $this->logDualChannel($locked, $activeUser, 'h_minus_5_active', $activeMsg);
 
                 $dispatched[] = [
                     'type' => 'h_minus_5_active',
                     'user_id' => $activeUser->id,
-                    'recipient' => $activeUser->whatsapp_number ?? $activeUser->email,
+                    'recipient' => $activeUser->email,
                     'unit_code' => $unit->code,
                     'message' => $activeMsg,
                 ];
@@ -184,7 +184,7 @@ class BookingRuleEngine
                     $dispatched[] = [
                         'type' => 'h_minus_5_waiting',
                         'user_id' => $nextWaiting->user->id,
-                        'recipient' => $nextWaiting->user->whatsapp_number ?? $nextWaiting->user->email,
+                        'recipient' => $nextWaiting->user->email,
                         'unit_code' => $unit->code,
                         'message' => $waitingMsg,
                     ];

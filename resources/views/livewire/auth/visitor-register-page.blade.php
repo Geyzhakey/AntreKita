@@ -58,7 +58,7 @@
                 </div>
 
                 <div>
-                    <label for="whatsapp_number" class="block text-xs font-semibold">Nomor Telepon (WhatsApp Aktif)</label>
+                    <label for="whatsapp_number" class="block text-xs font-semibold">Nomor Telepon Aktif</label>
                     <input id="whatsapp_number" type="text" wire:model="whatsapp_number" required placeholder="0812xxxxxxxx"
                         class="input-field mt-1 w-full rounded-xl px-3.5 py-2.5 font-mono text-sm">
                     @error('whatsapp_number') <p class="mt-1 text-[11px] font-semibold text-rose-600">{{ $message }}</p> @enderror

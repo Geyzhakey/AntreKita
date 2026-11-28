@@ -12,7 +12,6 @@ use App\Models\User;
 use App\Services\NotificationDispatcher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
@@ -20,29 +19,23 @@ class NotificationDispatcherTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_dispatches_real_email_and_whatsapp_when_configured(): void
+    public function test_dispatches_email_and_account_notifications_with_exact_templates(): void
     {
         Mail::fake();
-        Http::fake([
-            'https://api.fonnte.com/send' => Http::response(['status' => true, 'id' => 'wa-123'], 200),
-        ]);
 
         Config::set('mail.default', 'smtp');
         Config::set('mail.mailers.smtp.host', 'smtp.gmail.com');
         Config::set('mail.mailers.smtp.username', 'antrekita@gmail.com');
-        Config::set('mail.mailers.smtp.password', 'app-password');
-
-        SystemSetting::setValue('whatsapp_driver', 'fonnte');
-        SystemSetting::setValue('whatsapp_api_token', 'fonnte-live-token');
+        Config::set('mail.mailers.smtp.password', 'AntreKita Informatika!');
 
         $admin = User::factory()->create(['role' => 'admin']);
         $institution = Institution::create([
-            'name' => 'PUT PNJ',
+            'admin_id' => $admin->id,
+            'name' => 'PUT Politeknik Negeri Jakarta',
             'slug' => 'put-pnj',
             'registration_code' => 'PUT1PNJ26',
             'city' => 'Depok',
             'address' => 'Jl. Prof. DR. G.A. Siwabessy',
-            'admin_id' => $admin->id,
             'is_active' => true,
         ]);
 
@@ -50,8 +43,8 @@ class NotificationDispatcherTest extends TestCase
             'institution_id' => $institution->id,
             'code' => 'LT1-L2',
             'name' => 'Meja Leseh L2',
-            'zone' => 'Lantai 1',
-            'type' => 'leseh',
+            'zone' => 'leseh_desk',
+            'seat_type' => 'L',
             'capacity' => 4,
             'max_duration_minutes' => 120,
             'is_active' => true,
@@ -59,33 +52,47 @@ class NotificationDispatcherTest extends TestCase
 
         $visitor = User::factory()->create([
             'role' => 'visitor',
+            'name' => 'Dandy Aulia',
             'email' => 'dandy@example.com',
-            'whatsapp_number' => '+6281222822531',
         ]);
 
         $booking = Booking::create([
             'institution_id' => $institution->id,
             'facility_unit_id' => $unit->id,
             'user_id' => $visitor->id,
-            'group_name' => 'dandy_aulia1',
+            'group_name' => 'dandy_aulia',
             'people_count' => 2,
             'starts_at' => now(),
-            'ends_at' => now()->addMinutes(30),
+            'ends_at' => now()->addMinutes(5),
+            'finished_at' => now()->addMinutes(5),
             'status' => 'active',
         ]);
 
-        app(NotificationDispatcher::class)->dispatchDualChannel(
-            $booking,
-            $visitor,
-            'booking_confirmed',
-            'Booking LT1-L2 dikonfirmasi.'
-        );
+        $dispatcher = app(NotificationDispatcher::class);
+        $dispatcher->dispatchDualChannel($booking, $visitor, 'h_minus_5_active', 'Sisa 5 menit');
+        $dispatcher->dispatchDualChannel($booking, $visitor, 'session_completed', 'Sesi selesai');
 
-        Mail::assertSent(AntreKitaNotificationMail::class, fn ($mail) => $mail->hasTo('dandy@example.com'));
+        Mail::assertSent(AntreKitaNotificationMail::class, function (AntreKitaNotificationMail $mail) {
+            if ($mail->triggerType === 'h_minus_5_active') {
+                $mail->assertHasSubject('ANTREKITA: 5 MENIT MASA PENGGUNAAN MEJA LESEH L2 (LT1-L2) KAMU!');
+                $html = $mail->render();
 
-        Http::assertSent(fn ($request) => $request->url() === 'https://api.fonnte.com/send'
-            && $request['target'] === '6281222822531'
-            && $request['message'] === 'Booking LT1-L2 dikonfirmasi.');
+                return str_contains($html, 'Halo, <strong>Dandy Aulia</strong>!')
+                    && str_contains($html, 'PUT Politeknik Negeri Jakarta')
+                    && str_contains($html, 'Tim AntreKita');
+            }
+
+            if ($mail->triggerType === 'session_completed') {
+                $mail->assertHasSubject('ANTREKITA: MASA PENGGUNAAN MEJA LESEH L2 (LT1-L2) TELAH SELESAI');
+                $html = $mail->render();
+
+                return str_contains($html, 'Selesai')
+                    && str_contains($html, 'Terima kasih telah menjadi bagian dari pengguna AntreKita.')
+                    && str_contains($html, 'Tim AntreKita');
+            }
+
+            return false;
+        });
 
         $this->assertDatabaseHas('notification_logs', [
             'user_id' => $visitor->id,
@@ -95,36 +102,30 @@ class NotificationDispatcherTest extends TestCase
 
         $this->assertDatabaseHas('notification_logs', [
             'user_id' => $visitor->id,
-            'channel' => 'whatsapp',
-            'status' => 'sent',
-        ]);
-
-        $this->assertDatabaseHas('notification_logs', [
-            'user_id' => $visitor->id,
             'channel' => 'email',
             'status' => 'sent',
         ]);
+
+        $this->assertDatabaseMissing('notification_logs', [
+            'user_id' => $visitor->id,
+            'channel' => 'whatsapp',
+        ]);
     }
 
-    public function test_marks_unconfigured_when_gateways_have_no_credentials(): void
+    public function test_marks_email_unconfigured_when_mailer_has_no_credentials(): void
     {
-        Http::fake([
-            NotificationDispatcher::LOCAL_WA_URL . '/*' => Http::response(['connected' => false], 200),
-        ]);
         Config::set('mail.default', 'log');
         SystemSetting::setValue('smtp_username', '');
         SystemSetting::setValue('smtp_password', '');
-        SystemSetting::setValue('whatsapp_api_token', '');
-        Config::set('services.whatsapp.token', '');
 
         $admin = User::factory()->create(['role' => 'admin']);
         $institution = Institution::create([
+            'admin_id' => $admin->id,
             'name' => 'PUT PNJ',
             'slug' => 'put-pnj-2',
             'registration_code' => 'PUT2PNJ26',
             'city' => 'Depok',
             'address' => 'Kampus PNJ',
-            'admin_id' => $admin->id,
             'is_active' => true,
         ]);
 
@@ -132,8 +133,7 @@ class NotificationDispatcherTest extends TestCase
             'institution_id' => $institution->id,
             'code' => 'LT1-1',
             'name' => 'Meja 1',
-            'zone' => 'Lantai 1',
-            'type' => 'desk',
+            'zone' => 'standard_desk',
             'capacity' => 2,
             'max_duration_minutes' => 120,
             'is_active' => true,
@@ -142,7 +142,6 @@ class NotificationDispatcherTest extends TestCase
         $visitor = User::factory()->create([
             'role' => 'visitor',
             'email' => 'user@example.com',
-            'whatsapp_number' => '+6281200001111',
         ]);
 
         $booking = Booking::create([
@@ -169,6 +168,6 @@ class NotificationDispatcherTest extends TestCase
             'status' => 'sent',
         ]);
 
-        $this->assertSame(2, NotificationLog::where('status', 'unconfigured')->count());
+        $this->assertSame(1, NotificationLog::where('status', 'unconfigured')->count());
     }
 }

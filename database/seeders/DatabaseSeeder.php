@@ -110,32 +110,7 @@ class DatabaseSeeder extends Seeder
         $putPnj = $pnjAdmin['institution'];
         $this->seedPutPnjUnits($putPnj);
 
-        // 3. Seed Perpustakaan Universitas Indonesia (LBR1UI26)
-        $uiAdmin = $this->seedAdminAndInstitution(
-            $primaryDev,
-            $now,
-            [
-                'email' => 'perpustakaanui1@gmail.ac.id',
-                'username' => 'admin_ui',
-                'admin_name' => 'Admin Perpustakaan UI',
-                'wa' => '+6281200001001',
-                'reg_code' => ' ',
-                'name' => 'Perpustakaan Universitas Indonesia',
-                'slug' => 'perpus-ui',
-                'city' => 'Depok',
-                'building_type' => 'Perpustakaan Kampus',
-                'address' => 'Kampus UI Depok, Jawa Barat',
-                'description' => 'Perpustakaan pusat (The Crystal of Knowledge) dengan ruang diskusi kelompok, meja baca indoor, dan area outdoor tepi danau.',
-                'purpose' => 'Manajemen antrean ruang diskusi dan meja baca mahasiswa Universitas Indonesia.',
-                'has_custom_floorplan' => false,
-                'map_cols' => 6,
-                'map_rows' => 4,
-            ]
-        );
-        $perpusUi = $uiAdmin['institution'];
-        $this->seedStandardGridUnits($perpusUi, groups: 3, indoor: 5, outdoor: 5);
-
-        // 4. Visitors with Nama Pengguna (username) + Instansi (affiliation)
+        // 3. Visitors with Nama Pengguna (username) + Instansi (affiliation)
         $user1 = User::updateOrCreate(
             ['email' => 'pengguna1@gmail.com'],
             [
@@ -209,8 +184,8 @@ class DatabaseSeeder extends Seeder
             NotificationLog::create([
                 'booking_id' => $activeBooking->id,
                 'user_id' => $user1->id,
-                'channel' => 'whatsapp',
-                'recipient' => $user1->whatsapp_number,
+                'channel' => 'email',
+                'recipient' => $user1->email,
                 'trigger_type' => 'booking_confirmed',
                 'message' => "Booking LT1-9 (Meja Standar 9 — Lantai 1 PUT PNJ) dikonfirmasi untuk pukul {$activeStart->format('H:i')} - {$activeEnd->format('H:i')}.",
                 'sent_at' => $activeStart,
@@ -233,8 +208,8 @@ class DatabaseSeeder extends Seeder
             NotificationLog::create([
                 'booking_id' => $waitingBooking->id,
                 'user_id' => $user2->id,
-                'channel' => 'whatsapp',
-                'recipient' => $user2->whatsapp_number,
+                'channel' => 'email',
+                'recipient' => $user2->email,
                 'trigger_type' => 'booking_confirmed',
                 'message' => "Anda masuk Waiting List LT1-9 (PUT PNJ Lantai 1) untuk slot {$waitStart->format('H:i')} - {$waitEnd->format('H:i')}.",
                 'sent_at' => $now->copy()->subMinutes(10),
@@ -261,8 +236,8 @@ class DatabaseSeeder extends Seeder
             NotificationLog::create([
                 'booking_id' => $activeBooking2->id,
                 'user_id' => $user4->id,
-                'channel' => 'whatsapp',
-                'recipient' => $user4->whatsapp_number,
+                'channel' => 'email',
+                'recipient' => $user4->email,
                 'trigger_type' => 'booking_confirmed',
                 'message' => "Booking LT2-S1 (Meja Standar S1 — Lantai 2 PUT PNJ) dikonfirmasi untuk pukul {$activeStart2->format('H:i')} - {$activeEnd2->format('H:i')}.",
                 'sent_at' => $activeStart2,
@@ -274,7 +249,7 @@ class DatabaseSeeder extends Seeder
                 $primaryDev->id,
                 'SYSTEM_SEEDED',
                 'AntreKita Beta Test',
-                'Inisialisasi 4 akun Developer.Ai dan 2 instansi resmi (PUT1PNJ26 dengan denah 2 lantai, LBR1UI26).'
+                'Inisialisasi 4 akun Developer.Ai dan instansi resmi PUT Politeknik Negeri Jakarta (PUT1PNJ26, denah 2 lantai).'
             );
         }
     }

@@ -169,14 +169,14 @@
         @endauth
     </header>
 
-    <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+    <main class="ak-fade-in mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
         {{ $slot }}
     </main>
 
     <footer class="border-t border-[#CBE8DC] py-6 text-xs text-[#47625A] dark:border-[#213531] dark:text-[#98B4AC]">
         <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
             <span class="font-semibold text-[#0E241E] dark:text-[#E6F2EE]">AntreKita</span>
-            <span>Sistem Antrean Ruang Belajar Terbuka &middot; Web-First &amp; Real-Time</span>
+            <span>Reservasi Ruang dan Meja dengan Lebih Mudah &middot; Real-Time</span>
         </div>
     </footer>
 

@@ -31,15 +31,96 @@
 .bg-app-canvas {
     background-color: #EEF8F4;
     background-image:
-        radial-gradient(66rem 38rem at 12% -6%, rgba(144, 222, 195, 0.34), transparent 60%),
-        radial-gradient(50rem 30rem at 92% 4%, rgba(15, 110, 86, 0.06), transparent 55%);
+        radial-gradient(66rem 38rem at 12% -6%, rgba(144, 222, 195, 0.36), transparent 60%),
+        radial-gradient(50rem 30rem at 92% 4%, rgba(15, 110, 86, 0.065), transparent 55%),
+        radial-gradient(rgba(15, 110, 86, 0.075) 1px, transparent 1px);
+    background-size: auto, auto, 24px 24px;
 }
 
 .dark .bg-app-canvas {
     background-color: #0D1514;
     background-image:
-        radial-gradient(64rem 38rem at 12% -6%, rgba(144, 222, 195, 0.065), transparent 60%),
-        radial-gradient(50rem 30rem at 92% 4%, rgba(15, 110, 86, 0.14), transparent 55%);
+        radial-gradient(64rem 38rem at 12% -6%, rgba(144, 222, 195, 0.07), transparent 60%),
+        radial-gradient(50rem 30rem at 92% 4%, rgba(15, 110, 86, 0.14), transparent 55%),
+        radial-gradient(rgba(144, 222, 195, 0.055) 1px, transparent 1px);
+    background-size: auto, auto, 24px 24px;
+}
+
+@keyframes akFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes akFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes akScaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.975);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.ak-fade-up {
+    animation: akFadeUp 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ak-fade-in {
+    animation: akFadeIn 0.32s ease-out both;
+}
+
+.ak-scale-in {
+    animation: akScaleIn 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ak-delay-1 { animation-delay: 60ms; }
+.ak-delay-2 { animation-delay: 120ms; }
+.ak-delay-3 { animation-delay: 180ms; }
+.ak-delay-4 { animation-delay: 240ms; }
+
+.card-lift {
+    transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1), border-color 200ms ease, box-shadow 220ms ease;
+}
+
+.card-lift:hover {
+    transform: translateY(-2px);
+    border-color: rgba(15, 110, 86, 0.42);
+    box-shadow: 0 6px 14px -4px rgba(14, 36, 30, 0.07), 0 18px 36px -18px rgba(15, 110, 86, 0.18);
+}
+
+.dark .card-lift:hover {
+    border-color: rgba(144, 222, 195, 0.38);
+    box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.65);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ak-fade-up,
+    .ak-fade-in,
+    .ak-scale-in {
+        animation: none !important;
+    }
+    .card-lift {
+        transition: none !important;
+    }
+    .card-lift:hover {
+        transform: none !important;
+    }
 }
 
 .glass-nav {

@@ -137,7 +137,7 @@ class SpatialMapPage extends Component
 
             $this->dispatch('wa-notify', [
                 'title' => $booking->status === 'active' ? 'Booking Aktif Dikonfirmasi' : 'Masuk Waiting List',
-                'recipient' => $user->whatsapp_number ?? $user->email,
+                'recipient' => $user->email,
                 'message' => $booking->status === 'active'
                     ? "{$unit->code} aktif pukul {$startsAt->format('H:i')} - {$endsAt->format('H:i')}."
                     : "Anda masuk antrean {$unit->code} mulai pukul {$startsAt->format('H:i')}.",

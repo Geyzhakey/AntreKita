@@ -14,24 +14,43 @@ class AntreKitaNotificationMail extends Mailable
 {
     use Queueable, SerializesModels;
 
+    public string $unitName;
+
+    public string $unitCode;
+
+    public string $unitKind;
+
+    public string $unitDisplay;
+
+    public string $locationName;
+
     public function __construct(
         public Booking $booking,
         public User $user,
         public string $triggerType,
         public string $bodyMessage,
-    ) {}
+    ) {
+        $unit = $this->booking->facilityUnit;
+        $this->unitName = $unit?->name ?: ($unit?->code ?? 'Unit');
+        $this->unitCode = $unit?->code ?? '';
+        $this->unitKind = ($unit?->seat_type === 'ROOM' || $unit?->zone === 'group_room') ? 'Ruangan' : 'Meja';
+        $this->unitDisplay = $this->unitCode !== '' && $this->unitCode !== $this->unitName
+            ? "{$this->unitName} ({$this->unitCode})"
+            : $this->unitName;
+        $this->locationName = $this->booking->institution?->name ?? 'Lokasi Mitra AntreKita';
+    }
 
     public function envelope(): Envelope
     {
-        $unitCode = $this->booking->facilityUnit?->code ?? 'Unit';
+        $upperUnit = mb_strtoupper($this->unitDisplay);
 
         $subject = match ($this->triggerType) {
-            'booking_confirmed' => "[AntreKita] Konfirmasi Booking {$unitCode}",
-            'h_minus_5_active' => "[AntreKita] Pengingat H-5 Menit — Sesi {$unitCode}",
-            'h_minus_5_waiting' => "[AntreKita] Giliran {$unitCode} Dimulai 5 Menit Lagi",
-            'handover_ready' => "[AntreKita] Unit {$unitCode} Siap Digunakan!",
-            'session_completed' => "[AntreKita] Sesi Selesai — {$unitCode}",
-            default => "[AntreKita] Notifikasi Sesi {$unitCode}",
+            'h_minus_5_active' => "ANTREKITA: 5 MENIT MASA PENGGUNAAN {$upperUnit} KAMU!",
+            'session_completed' => "ANTREKITA: MASA PENGGUNAAN {$upperUnit} TELAH SELESAI",
+            'booking_confirmed' => "ANTREKITA: KONFIRMASI RESERVASI {$upperUnit}",
+            'h_minus_5_waiting' => "ANTREKITA: GILIRAN {$upperUnit} DIMULAI 5 MENIT LAGI",
+            'handover_ready' => "ANTREKITA: {$upperUnit} SIAP DIGUNAKAN!",
+            default => "ANTREKITA: NOTIFIKASI SESI {$upperUnit}",
         };
 
         return new Envelope(

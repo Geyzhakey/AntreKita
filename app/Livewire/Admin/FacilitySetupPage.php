@@ -10,7 +10,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('components.layouts.app', ['title' => 'Setup Peta Lokasi & Unit — Admin AntreKita'])]
+#[Layout('components.layouts.app', ['title' => 'Desainer Denah & Unit — Admin AntreKita'])]
 class FacilitySetupPage extends Component
 {
     public ?Institution $institution = null;
@@ -25,11 +25,20 @@ class FacilitySetupPage extends Component
 
     public string $inst_description = '';
 
-    public int $map_cols = 6;
+    public int $map_cols = 8;
 
-    public int $map_rows = 4;
+    public int $map_rows = 6;
 
-    public string $floorFilter = 'all';
+    // Interactive Multi-Floor Floorplan Designer State
+    public int $activeFloor = 1;
+
+    public int $maxKnownFloor = 1;
+
+    public string $paintTool = 'select'; // select | ROOM | S | L | H | F
+
+    public bool $useGridDesigner = false;
+
+    public int $bulk_floor_duration = 120;
 
     // Single Unit CRUD
     public ?int $editingUnitId = null;
@@ -44,15 +53,19 @@ class FacilitySetupPage extends Component
 
     public string $seat_type = 'S';
 
-    public int $capacity = 1;
+    public int $capacity = 2;
 
-    public int $max_duration_minutes = 180;
+    public int $max_duration_minutes = 120;
 
     public int $pos_x = 1;
 
     public int $pos_y = 1;
 
-    // Batch Generator
+    // Per-Floor Batch Generator
+    public int $batch_floor = 1;
+
+    public int $batch_max_duration = 120;
+
     public int $batch_group_rooms = 0;
 
     public int $batch_indoor_desks = 0;
@@ -73,9 +86,49 @@ class FacilitySetupPage extends Component
             $this->inst_building_type = $this->institution->building_type ?? 'Perpustakaan Kampus';
             $this->inst_address = $this->institution->address;
             $this->inst_description = $this->institution->description ?? '';
-            $this->map_cols = $this->institution->map_cols ?? 6;
-            $this->map_rows = $this->institution->map_rows ?? 4;
+            $this->map_cols = $this->institution->map_cols ?? 8;
+            $this->map_rows = $this->institution->map_rows ?? 6;
+            $this->maxKnownFloor = max(1, (int) ($this->institution->facilityUnits()->max('floor') ?? 1));
+            $this->activeFloor = 1;
+            $this->floor = 1;
+            $this->batch_floor = 1;
         }
+    }
+
+    public function selectFloor(int $floor): void
+    {
+        $floor = max(1, min(10, $floor));
+        $this->activeFloor = $floor;
+        $this->maxKnownFloor = max($this->maxKnownFloor, $floor);
+        $this->floor = $floor;
+        $this->batch_floor = $floor;
+        $this->cancelEditKeepingFloor();
+    }
+
+    public function addFloor(): void
+    {
+        abort_unless(Auth::user()?->isAdmin() && $this->institution, 403);
+
+        $dbMax = (int) ($this->institution->facilityUnits()->max('floor') ?? 1);
+        $nextFloor = min(10, max($this->maxKnownFloor, $dbMax) + 1);
+        $this->maxKnownFloor = $nextFloor;
+        $this->selectFloor($nextFloor);
+
+        $this->dispatch('wa-notify', [
+            'title' => "Lantai {$nextFloor} Siap Didesain",
+            'message' => "Silakan pilih alat kuas atau buat unit baru untuk menata Lantai {$nextFloor}.",
+        ]);
+    }
+
+    public function setPaintTool(string $tool): void
+    {
+        $allowed = ['select', 'ROOM', 'S', 'L', 'H', 'F'];
+        $this->paintTool = in_array($tool, $allowed, true) ? $tool : 'select';
+    }
+
+    public function toggleDesignerMode(): void
+    {
+        $this->useGridDesigner = ! $this->useGridDesigner;
     }
 
     public function saveInstitution(): void
@@ -125,15 +178,95 @@ class FacilitySetupPage extends Component
         }
 
         $this->dispatch('wa-notify', [
-            'title' => 'Profil & Dimensi Peta Disimpan',
+            'title' => 'Profil & Kanvas Denah Disimpan',
             'message' => "{$this->institution->name} diperbarui ({$this->map_cols}x{$this->map_rows} grid).",
         ]);
     }
 
     public function pickCell(int $x, int $y): void
     {
+        abort_unless(Auth::user()?->isAdmin() && $this->institution, 403);
+
+        $existing = $this->institution->facilityUnits()
+            ->where('floor', $this->activeFloor)
+            ->where('pos_x', $x)
+            ->where('pos_y', $y)
+            ->first();
+
+        if ($existing) {
+            $this->editUnit($existing->id);
+
+            return;
+        }
+
+        if ($this->paintTool !== 'select') {
+            $meta = match ($this->paintTool) {
+                'ROOM' => ['prefix' => "LT{$this->activeFloor}-R", 'label' => 'Ruang Diskusi', 'zone' => 'group_room', 'cap' => 6],
+                'L' => ['prefix' => "LT{$this->activeFloor}-L", 'label' => 'Meja Leseh', 'zone' => 'leseh_desk', 'cap' => 2],
+                'H' => ['prefix' => "LT{$this->activeFloor}-H", 'label' => 'Meja Tinggi', 'zone' => 'high_desk', 'cap' => 1],
+                'F' => ['prefix' => "LT{$this->activeFloor}-F", 'label' => 'Ruang Fokus', 'zone' => 'focus_desk', 'cap' => 1],
+                default => ['prefix' => "LT{$this->activeFloor}-S", 'label' => 'Meja Standar', 'zone' => 'standard_desk', 'cap' => 2],
+            };
+
+            $num = $this->institution->facilityUnits()
+                ->where('floor', $this->activeFloor)
+                ->where('seat_type', $this->paintTool)
+                ->count() + 1;
+
+            $code = $meta['prefix'] . $num;
+            while ($this->institution->facilityUnits()->where('code', $code)->exists()) {
+                $num++;
+                $code = $meta['prefix'] . $num;
+            }
+
+            $created = FacilityUnit::create([
+                'institution_id' => $this->institution->id,
+                'code' => $code,
+                'name' => "{$meta['label']} {$num} (Lt. {$this->activeFloor})",
+                'display_label' => $code,
+                'zone' => $meta['zone'],
+                'floor' => $this->activeFloor,
+                'seat_type' => $this->paintTool,
+                'capacity' => $meta['cap'],
+                'max_duration_minutes' => max(15, min(480, $this->batch_max_duration)),
+                'is_active' => true,
+                'sort_order' => ($this->institution->facilityUnits()->max('sort_order') ?? 0) + 1,
+                'pos_x' => $x,
+                'pos_y' => $y,
+            ]);
+
+            $this->editUnit($created->id);
+
+            $this->dispatch('wa-notify', [
+                'title' => 'Unit Ditempatkan di Kanvas',
+                'message' => "{$created->code} ditambahkan ke Lantai {$this->activeFloor} posisi ({$x},{$y}).",
+            ]);
+
+            return;
+        }
+
+        $this->editingUnitId = null;
+        $this->floor = $this->activeFloor;
         $this->pos_x = $x;
         $this->pos_y = $y;
+    }
+
+    public function applyDurationToFloor(): void
+    {
+        abort_unless(Auth::user()?->isAdmin() && $this->institution, 403);
+
+        $this->validate([
+            'bulk_floor_duration' => ['required', 'integer', 'min:15', 'max:480'],
+        ]);
+
+        $affected = $this->institution->facilityUnits()
+            ->where('floor', $this->activeFloor)
+            ->update(['max_duration_minutes' => $this->bulk_floor_duration]);
+
+        $this->dispatch('wa-notify', [
+            'title' => 'Batas Waktu Peminjaman Diperbarui',
+            'message' => "{$affected} unit di Lantai {$this->activeFloor} kini memiliki batas pinjam {$this->bulk_floor_duration} menit.",
+        ]);
     }
 
     public function generateBatchUnits(): void
@@ -141,21 +274,27 @@ class FacilitySetupPage extends Component
         abort_unless(Auth::user()?->isAdmin() && $this->institution, 403);
 
         $this->validate([
+            'batch_floor' => ['required', 'integer', 'min:1', 'max:10'],
+            'batch_max_duration' => ['required', 'integer', 'min:15', 'max:480'],
             'batch_group_rooms' => ['integer', 'min:0', 'max:20'],
             'batch_indoor_desks' => ['integer', 'min:0', 'max:40'],
             'batch_outdoor_desks' => ['integer', 'min:0', 'max:40'],
             'batch_reading_chairs' => ['integer', 'min:0', 'max:40'],
         ]);
 
+        $targetFloor = $this->batch_floor;
+        $this->maxKnownFloor = max($this->maxKnownFloor, $targetFloor);
+
         $specs = [
-            ['count' => $this->batch_group_rooms, 'prefix' => 'Ruang', 'label' => 'Ruang Kelompok', 'zone' => 'group_room', 'seat_type' => 'ROOM', 'cap' => 6],
-            ['count' => $this->batch_indoor_desks, 'prefix' => 'MejaIn', 'label' => 'Meja Standar Indoor', 'zone' => 'indoor_desk', 'seat_type' => 'S', 'cap' => 1],
-            ['count' => $this->batch_outdoor_desks, 'prefix' => 'MejaOut', 'label' => 'Meja Leseh / Outdoor', 'zone' => 'outdoor_desk', 'seat_type' => 'L', 'cap' => 1],
-            ['count' => $this->batch_reading_chairs, 'prefix' => 'KursiT', 'label' => 'Meja & Kursi Tinggi', 'zone' => 'reading_chair', 'seat_type' => 'H', 'cap' => 1],
+            ['count' => $this->batch_group_rooms, 'prefix' => "LT{$targetFloor}-R", 'label' => 'Ruang Kelompok', 'zone' => 'group_room', 'seat_type' => 'ROOM', 'cap' => 6],
+            ['count' => $this->batch_indoor_desks, 'prefix' => "LT{$targetFloor}-S", 'label' => 'Meja Standar', 'zone' => 'standard_desk', 'seat_type' => 'S', 'cap' => 2],
+            ['count' => $this->batch_outdoor_desks, 'prefix' => "LT{$targetFloor}-L", 'label' => 'Meja Leseh', 'zone' => 'leseh_desk', 'seat_type' => 'L', 'cap' => 2],
+            ['count' => $this->batch_reading_chairs, 'prefix' => "LT{$targetFloor}-H", 'label' => 'Meja & Kursi Tinggi', 'zone' => 'high_desk', 'seat_type' => 'H', 'cap' => 1],
         ];
 
         $cols = max(3, $this->institution->map_cols);
         $occupied = $this->institution->facilityUnits()
+            ->where('floor', $targetFloor)
             ->get()
             ->map(fn (FacilityUnit $u) => "{$u->pos_x},{$u->pos_y}")
             ->flip()
@@ -170,7 +309,10 @@ class FacilitySetupPage extends Component
             if ($spec['count'] <= 0) {
                 continue;
             }
-            $existingCount = $this->institution->facilityUnits()->where('zone', $spec['zone'])->count();
+            $existingCount = $this->institution->facilityUnits()
+                ->where('floor', $targetFloor)
+                ->where('zone', $spec['zone'])
+                ->count();
 
             for ($i = 1; $i <= $spec['count']; $i++) {
                 while (isset($occupied["{$x},{$y}"])) {
@@ -191,13 +333,13 @@ class FacilitySetupPage extends Component
                 FacilityUnit::create([
                     'institution_id' => $this->institution->id,
                     'code' => $code,
-                    'name' => "{$spec['label']} {$num}",
+                    'name' => "{$spec['label']} {$num} (Lt. {$targetFloor})",
                     'display_label' => $code,
                     'zone' => $spec['zone'],
-                    'floor' => 1,
+                    'floor' => $targetFloor,
                     'seat_type' => $spec['seat_type'],
                     'capacity' => $spec['cap'],
-                    'max_duration_minutes' => 180,
+                    'max_duration_minutes' => $this->batch_max_duration,
                     'is_active' => true,
                     'sort_order' => $order++,
                     'pos_x' => $x,
@@ -210,15 +352,17 @@ class FacilitySetupPage extends Component
         }
 
         if ($y > $this->institution->map_rows) {
-            $this->institution->update(['map_rows' => min(12, $y)]);
-            $this->map_rows = min(12, $y);
+            $newRows = min(12, $y);
+            $this->institution->update(['map_rows' => $newRows]);
+            $this->map_rows = $newRows;
         }
 
+        $this->activeFloor = $targetFloor;
         $this->reset(['batch_group_rooms', 'batch_indoor_desks', 'batch_outdoor_desks', 'batch_reading_chairs']);
 
         $this->dispatch('wa-notify', [
-            'title' => 'Pemetaan Massal Selesai',
-            'message' => "{$created} unit baru otomatis dipetakan ke denah 2D.",
+            'title' => "Pemetaan Lantai {$targetFloor} Selesai",
+            'message' => "{$created} unit baru dipetakan dengan batas pinjam {$this->batch_max_duration} menit.",
         ]);
     }
 
@@ -251,6 +395,7 @@ class FacilitySetupPage extends Component
             $unit->update([
                 'code' => trim($this->code),
                 'name' => trim($this->name),
+                'display_label' => trim($this->code),
                 'zone' => $this->zone,
                 'floor' => $this->floor,
                 'seat_type' => $this->seat_type,
@@ -277,7 +422,14 @@ class FacilitySetupPage extends Component
             ]);
         }
 
-        $this->cancelEdit();
+        $this->maxKnownFloor = max($this->maxKnownFloor, $this->floor);
+        $this->activeFloor = $this->floor;
+        $this->cancelEditKeepingFloor();
+
+        $this->dispatch('wa-notify', [
+            'title' => 'Unit Fasilitas Disimpan',
+            'message' => "Konfigurasi unit pada Lantai {$this->activeFloor} berhasil disimpan.",
+        ]);
     }
 
     public function editUnit(int $unitId): void
@@ -292,6 +444,7 @@ class FacilitySetupPage extends Component
         $this->name = $unit->name;
         $this->zone = $unit->zone;
         $this->floor = $unit->floor ?? 1;
+        $this->activeFloor = $this->floor;
         $this->seat_type = $unit->seat_type ?? 'S';
         $this->capacity = $unit->capacity;
         $this->max_duration_minutes = $unit->max_duration_minutes;
@@ -301,13 +454,19 @@ class FacilitySetupPage extends Component
 
     public function cancelEdit(): void
     {
+        $this->floor = 1;
+        $this->cancelEditKeepingFloor();
+    }
+
+    protected function cancelEditKeepingFloor(): void
+    {
         $this->editingUnitId = null;
         $this->reset(['code', 'name']);
         $this->zone = 'standard_desk';
-        $this->floor = 1;
+        $this->floor = $this->activeFloor;
         $this->seat_type = 'S';
-        $this->capacity = 1;
-        $this->max_duration_minutes = 180;
+        $this->capacity = 2;
+        $this->max_duration_minutes = $this->batch_max_duration;
         $this->pos_x = 1;
         $this->pos_y = 1;
     }
@@ -329,24 +488,26 @@ class FacilitySetupPage extends Component
         }
 
         FacilityUnit::where('institution_id', $this->institution->id)->whereKey($unitId)->delete();
+        if ($this->editingUnitId === $unitId) {
+            $this->cancelEditKeepingFloor();
+        }
     }
 
     public function render()
     {
         $allUnits = $this->institution
-            ? $this->institution->facilityUnits()->get()
+            ? $this->institution->facilityUnits()->orderBy('floor')->orderBy('sort_order')->get()
             : collect();
 
-        $floors = $allUnits->pluck('floor')->unique()->sort()->values();
+        $dbFloors = $allUnits->pluck('floor')->map(fn ($f) => (int) ($f ?: 1))->unique();
+        $floors = $dbFloors->merge(range(1, max(1, $this->maxKnownFloor)))->unique()->sort()->values();
 
-        $units = $this->floorFilter === 'all'
-            ? $allUnits
-            : $allUnits->where('floor', (int) $this->floorFilter)->values();
-
-        $gridMap = $units->keyBy(fn (FacilityUnit $u) => "{$u->pos_x},{$u->pos_y}");
+        $floorUnits = $allUnits->where('floor', $this->activeFloor)->values();
+        $gridMap = $floorUnits->keyBy(fn (FacilityUnit $u) => "{$u->pos_x},{$u->pos_y}");
 
         return view('livewire.admin.facility-setup-page', [
-            'units' => $units,
+            'allUnits' => $allUnits,
+            'floorUnits' => $floorUnits,
             'totalUnitsCount' => $allUnits->count(),
             'floors' => $floors,
             'gridMap' => $gridMap,

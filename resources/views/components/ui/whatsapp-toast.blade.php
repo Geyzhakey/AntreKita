@@ -20,17 +20,18 @@
     class="pointer-events-none fixed right-4 bottom-4 z-50 flex w-full max-w-sm flex-col gap-2.5"
 >
     <template x-for="toast in toasts" :key="toast.id">
-        <div class="surface-card pointer-events-auto rounded-2xl p-3.5 backdrop-blur-xl">
+        <div class="surface-card ak-fade-up pointer-events-auto rounded-2xl border-[#0F6E56]/25 p-3.5 shadow-lg backdrop-blur-xl dark:border-[#90DEC3]/25">
             <div class="flex items-start gap-3">
-                <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#25D366] text-[#F7FCFA]">
+                <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#0F6E56] text-[#90DEC3] dark:bg-[#90DEC3] dark:text-[#0B1F19]">
                     <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                        <rect x="2" y="4" width="20" height="16" rx="3" />
+                        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                 </span>
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center justify-between gap-2">
                         <p class="text-xs font-bold text-[#0E241E] dark:text-[#E6F2EE]" x-text="toast.title"></p>
-                        <button type="button" @click="toasts = toasts.filter(t => t.id !== toast.id)" class="text-xs text-[#47625A] hover:text-[#0E241E] dark:text-[#98B4AC]">&times;</button>
+                        <button type="button" @click="toasts = toasts.filter(t => t.id !== toast.id)" class="text-xs text-[#47625A] transition hover:text-[#0E241E] dark:text-[#98B4AC]">&times;</button>
                     </div>
                     <p x-show="toast.recipient" class="font-mono text-[11px] font-bold text-[#0F6E56] dark:text-[#90DEC3]" x-text="toast.recipient"></p>
                     <p class="mt-1 text-xs leading-relaxed text-[#47625A] dark:text-[#98B4AC]" x-text="toast.message"></p>
