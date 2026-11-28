@@ -173,6 +173,7 @@ class ActiveSessionPage extends Component
             'logs' => $logs,
             'checklistComplete' => $this->checkDeskClean && $this->checkChairsArranged && $this->checkPersonalItems,
             'emailConfigured' => NotificationDispatcher::isEmailConfigured(),
+            'isResend' => NotificationDispatcher::getResendApiKey() !== null,
         ]);
     }
 }

@@ -57,8 +57,27 @@ class NotificationDispatcher
         return self::$smtpReachableCache = true;
     }
 
+    public static function getResendApiKey(): ?string
+    {
+        $key = trim((string) (SystemSetting::getValue('resend_api_key') ?? ''));
+        if ($key === '') {
+            $key = trim((string) env('RESEND_API_KEY', ''));
+        }
+
+        return $key !== '' ? $key : null;
+    }
+
     public static function isEmailConfigured(): bool
     {
+        $mailer = (string) config('mail.default', 'log');
+        if (in_array($mailer, ['log', 'array'], true)) {
+            return false;
+        }
+
+        if (self::getResendApiKey() !== null) {
+            return true;
+        }
+
         self::applyRuntimeMailConfig();
 
         $mailer = (string) config('mail.default', 'log');
@@ -119,7 +138,42 @@ class NotificationDispatcher
     public function sendEmail(Booking $booking, User $user, string $triggerType, string $message): array
     {
         if (! self::isEmailConfigured()) {
-            return ['unconfigured', 'MAIL_MAILER masih mode log atau kredensial SMTP di .env belum diisi.'];
+            return ['unconfigured', 'Kredensial email (Resend API Key atau SMTP) belum dikonfigurasi.'];
+        }
+
+        $resendKey = self::getResendApiKey();
+        if ($resendKey && ! app()->runningUnitTests()) {
+            try {
+                $booking->loadMissing(['facilityUnit', 'institution']);
+                $mailable = new AntreKitaNotificationMail($booking, $user, $triggerType, $message);
+                $html = $mailable->render();
+                $subject = $mailable->envelope()->subject;
+
+                $from = trim((string) (SystemSetting::getValue('resend_from') ?: env('RESEND_FROM', 'AntreKita <onboarding@resend.dev>')));
+
+                $response = \Illuminate\Support\Facades\Http::withToken($resendKey)
+                    ->timeout(8)
+                    ->post('https://api.resend.com/emails', [
+                        'from' => $from,
+                        'to' => [$user->email],
+                        'subject' => $subject,
+                        'html' => $html,
+                    ]);
+
+                if ($response->successful()) {
+                    return ['sent', null];
+                }
+
+                $errJson = $response->json();
+                $errMsg = is_array($errJson) ? ($errJson['message'] ?? json_encode($errJson)) : $response->body();
+                Log::error('AntreKita Resend API Error', ['status' => $response->status(), 'response' => $errMsg]);
+
+                return ['failed', 'Resend: ' . mb_substr($errMsg, 0, 200)];
+            } catch (\Throwable $e) {
+                Log::error('AntreKita Resend delivery failed', ['email' => $user->email, 'exception' => $e->getMessage()]);
+
+                return ['failed', 'Resend: ' . mb_substr($e->getMessage(), 0, 200)];
+            }
         }
 
         if (config('mail.default') === 'smtp') {

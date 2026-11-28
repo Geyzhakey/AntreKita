@@ -23,6 +23,8 @@ class DatabaseSeeder extends Seeder
         SystemSetting::setValue('developer_whatsapp', '081222822531');
         SystemSetting::setValue('global_announcement', '');
         SystemSetting::setValue('booking_maintenance_mode', '0');
+        SystemSetting::setValue('resend_api_key', (string) env('RESEND_API_KEY', ''));
+        SystemSetting::setValue('resend_from', (string) env('RESEND_FROM', 'AntreKita <onboarding@resend.dev>'));
 
         // 1. 4 Developer Accounts (2 Utama + 2 Cadangan) — Instansi: Developer.Ai
         $devConfigs = [

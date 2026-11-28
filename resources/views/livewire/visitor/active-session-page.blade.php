@@ -146,11 +146,13 @@
                 <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#CBE8DC] pb-3.5 dark:border-[#213531]">
                     <div>
                         <h2 class="text-base font-bold tracking-tight">Notifikasi Email &amp; Akun</h2>
-                        <p class="text-[11px] text-[#47625A] dark:text-[#98B4AC]">Dikirim otomatis via antrekita@gmail.com ke email Anda.</p>
+                        <p class="text-[11px] text-[#47625A] dark:text-[#98B4AC]">
+                            {{ $isResend ? 'Dikirim instan via Resend Cloud API ke email Anda.' : 'Dikirim otomatis via antrekita@gmail.com ke email Anda.' }}
+                        </p>
                     </div>
                     <button type="button" wire:click="toggleGatewaySetup"
                         class="rounded-md px-2.5 py-0.5 font-mono text-[10px] font-bold transition hover:opacity-80 {{ $emailConfigured ? 'bg-emerald-500/15 text-[#0F6E56] dark:text-[#90DEC3]' : 'bg-amber-500/15 text-amber-800 dark:text-amber-300' }}">
-                        SMTP: {{ $emailConfigured ? 'Aktif' : 'Perlu Setup' }}
+                        {{ $isResend ? 'Resend API: Aktif' : ($emailConfigured ? 'SMTP: Aktif' : 'Perlu Setup') }}
                     </button>
                 </div>
 
