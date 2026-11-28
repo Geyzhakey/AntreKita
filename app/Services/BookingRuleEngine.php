@@ -228,6 +228,14 @@ class BookingRuleEngine
                 'finished_at' => $now,
             ]);
 
+            $unitCode = $locked->facilityUnit->code;
+            $unitName = $locked->facilityUnit->name;
+            $greeting = $this->timeOfDayGreeting($now);
+            $actorName = $this->displayUsername($actor);
+
+            $finishMsg = "{$greeting}, {$actorName}! Sesi penggunaan {$unitName} ({$unitCode}) telah selesai dicatat pada pukul {$now->format('H:i')} WIB. Terima kasih telah menjaga kebersihan dan ketertiban fasilitas bersama!";
+            $this->logDualChannel($locked, $actor, 'session_completed', $finishMsg);
+
             $promoted = null;
             if ($wasActive) {
                 $next = Booking::with('user')
@@ -250,8 +258,6 @@ class BookingRuleEngine
                         'ends_at' => $newEnd,
                     ]);
 
-                    $unitCode = $locked->facilityUnit->code;
-                    $greeting = $this->timeOfDayGreeting($now);
                     $nextUsername = $this->displayUsername($next->user);
                     $handoverMsg = "{$greeting}, {$nextUsername}! {$locked->facilityUnit->name} ({$unitCode}) sudah siap dan bersih. Giliran kamu sekarang aktif hingga pukul {$newEnd->format('H:i')} WIB.";
                     $this->logDualChannel($next, $next->user, 'handover_ready', $handoverMsg);

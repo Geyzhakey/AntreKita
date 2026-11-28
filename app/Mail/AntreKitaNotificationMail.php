@@ -30,6 +30,7 @@ class AntreKitaNotificationMail extends Mailable
             'h_minus_5_active' => "[AntreKita] Pengingat H-5 Menit — Sesi {$unitCode}",
             'h_minus_5_waiting' => "[AntreKita] Giliran {$unitCode} Dimulai 5 Menit Lagi",
             'handover_ready' => "[AntreKita] Unit {$unitCode} Siap Digunakan!",
+            'session_completed' => "[AntreKita] Sesi Selesai — {$unitCode}",
             default => "[AntreKita] Notifikasi Sesi {$unitCode}",
         };
 
