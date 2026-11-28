@@ -54,6 +54,11 @@
                 <div>
                     <label for="registration_code" class="block text-xs font-semibold">Kode Daftar</label>
                     <input id="registration_code" type="text" wire:model="registration_code" required
+                        placeholder="Contoh: PNJ-01 atau PNJ-PUT"
+                        class="input-field mt-1.5 w-full rounded-xl px-3.5 py-2.5 font-mono uppercase text-sm">
+                    @error('registration_code')
+                        <p class="mt-1 text-xs font-semibold text-rose-600 dark:text-rose-400">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>
@@ -62,12 +67,6 @@
                         placeholder="Masukkan password instansi"
                         class="input-field mt-1.5 w-full rounded-xl px-3.5 py-2.5 text-sm">
                     @error('password')
-                        <p class="mt-1 text-xs font-semibold text-rose-600 dark:text-rose-400">{{ $message }}</p>
-                    @enderror
-                </div>
-                
-                <div>
-                    @error('registration_code')
                         <p class="mt-1 text-xs font-semibold text-rose-600 dark:text-rose-400">{{ $message }}</p>
                     @enderror
                 </div>

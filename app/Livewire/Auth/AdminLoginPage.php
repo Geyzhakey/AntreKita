@@ -72,6 +72,12 @@ class AdminLoginPage extends Component
 
     public function getWhatsappUrlProperty(): string
     {
+        $rawNumber = \App\Models\SystemSetting::getValue('developer_whatsapp', '6281222822531') ?: '6281222822531';
+        $digits = preg_replace('/[^\d]/', '', (string) $rawNumber);
+        if (str_starts_with($digits, '0')) {
+            $digits = '62' . substr($digits, 1);
+        }
+
         $template = "Halo Tim AntreKita,\n"
             . "Saya ingin mendaftarkan Akun Administrator Instansi baru.\n\n"
             . "Silakan lengkapi format pendaftaran berikut:\n"
@@ -83,7 +89,7 @@ class AdminLoginPage extends Component
             . "• Tujuan Permintaan Kebutuhan: [Jelaskan Kebutuhan Pemetaan Ruangan/Meja]\n\n"
             . "Mohon penerbitan Kode Daftar resmi untuk gedung kami. Terima kasih.";
 
-        return 'https://wa.me//081222822531?text=' . rawurlencode($template);
+        return 'https://wa.me/' . $digits . '?text=' . rawurlencode($template);
     }
 
     protected function ensureIsNotRateLimited(): void

@@ -70,7 +70,7 @@ class ControlCenterPage extends Component
     {
         abort_unless(Auth::user()?->isDeveloper(), 403);
 
-        $this->developer_whatsapp = SystemSetting::getValue('developer_whatsapp', '6281200000000') ?? '6281200000000';
+        $this->developer_whatsapp = SystemSetting::getValue('developer_whatsapp', '6281222822531') ?? '6281222822531';
         $this->global_announcement = SystemSetting::getValue('global_announcement', '') ?? '';
         $this->booking_maintenance_mode = SystemSetting::getValue('booking_maintenance_mode', '0') === '1';
     }
@@ -296,7 +296,7 @@ class ControlCenterPage extends Component
     {
         abort_unless(Auth::user()?->isDeveloper(), 403);
 
-        $wa = preg_replace('/[^\d]/', '', trim($this->developer_whatsapp)) ?: '6281200000000';
+        $wa = preg_replace('/[^\d]/', '', trim($this->developer_whatsapp)) ?: '6281222822531';
         SystemSetting::setValue('developer_whatsapp', $wa);
         SystemSetting::setValue('global_announcement', trim($this->global_announcement));
         SystemSetting::setValue('booking_maintenance_mode', $this->booking_maintenance_mode ? '1' : '0');

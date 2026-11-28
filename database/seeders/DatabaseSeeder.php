@@ -92,7 +92,8 @@ class DatabaseSeeder extends Seeder
             [
                 'email' => 'put.pnj@pnj.ac.id',
                 'username' => 'admin_pnj',
-                'admin_name' => 'Admin PUT PNJ',
+                'admin_name' => 'Admin PUT Politeknik Negeri Jakarta',
+                'password' => 'Admin#1234',
                 'wa' => '+6281200001002',
                 'reg_code' => 'PUT1PNJ26',
                 'name' => 'PUT Politeknik Negeri Jakarta',
@@ -109,6 +110,30 @@ class DatabaseSeeder extends Seeder
         );
         $putPnj = $pnjAdmin['institution'];
         $this->seedPutPnjUnits($putPnj);
+
+        // 2b. Seed Universitas Sumatera Utara (USU1MEDAN26)
+        $this->seedAdminAndInstitution(
+            $primaryDev,
+            $now,
+            [
+                'email' => 'rotigoreng@usu.ac.id',
+                'username' => 'rotigoreng',
+                'admin_name' => 'rotigoreng',
+                'password' => 'pasword123',
+                'wa' => '+6281222822531',
+                'reg_code' => 'USU1MEDAN26',
+                'name' => 'Universitas Sumatera Utara',
+                'slug' => 'universitas-sumatera-utara',
+                'city' => 'Medan',
+                'building_type' => 'Perpustakaan',
+                'address' => 'Medan, Sumatera Utara',
+                'description' => 'Perpustakaan Universitas Sumatera Utara (USU)',
+                'purpose' => 'ingin buat akun ea. (Perpustakaan Universitas Sumatera Utara)',
+                'has_custom_floorplan' => false,
+                'map_cols' => 8,
+                'map_rows' => 6,
+            ]
+        );
 
         // 3. Visitors with Nama Pengguna (username) + Instansi (affiliation)
         $user1 = User::updateOrCreate(
@@ -279,7 +304,7 @@ class DatabaseSeeder extends Seeder
                 'purpose' => $inst['purpose'],
                 'is_verified_admin' => true,
                 'is_frozen' => false,
-                'password' => Hash::make('password'),
+                'password' => Hash::make($inst['password'] ?? 'password'),
             ]
         );
 
