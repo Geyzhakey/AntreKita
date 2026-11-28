@@ -52,10 +52,6 @@ class ActiveSessionPage extends Component
                 ]);
             }
         }
-
-        if (NotificationDispatcher::isEmailConfigured()) {
-            app(NotificationDispatcher::class)->retryPendingForUser($user);
-        }
     }
 
     public function toggleGatewaySetup(): void

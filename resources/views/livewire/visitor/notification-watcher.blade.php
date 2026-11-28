@@ -17,7 +17,7 @@
     </button>
 
     @if ($open)
-        <div class="surface-card absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-2xl border border-[#CBE8DC] shadow-xl sm:w-96 dark:border-[#213531]">
+        <div class="surface-card ak-scale-in absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-2xl border border-[#CBE8DC] shadow-xl sm:w-96 dark:border-[#213531]">
             <div class="flex items-center justify-between border-b border-[#CBE8DC] bg-[#EEF8F4] px-4 py-3 dark:border-[#213531] dark:bg-[#131F1D]">
                 <div>
                     <h3 class="text-xs font-bold text-[#0E241E] dark:text-[#E6F2EE]">Pesan Akun</h3>

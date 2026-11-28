@@ -77,6 +77,28 @@
     }
 }
 
+@keyframes akPulseDot {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(15, 110, 86, 0.45);
+    }
+    50% {
+        opacity: 0.78;
+        transform: scale(1.14);
+        box-shadow: 0 0 0 6px rgba(15, 110, 86, 0);
+    }
+}
+
+@keyframes akFloatSlow {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-4px);
+    }
+}
+
 .ak-fade-up {
     animation: akFadeUp 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -89,10 +111,28 @@
     animation: akScaleIn 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+.ak-pulse-dot {
+    animation: akPulseDot 2.1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.ak-float-slow {
+    animation: akFloatSlow 5s ease-in-out infinite;
+}
+
 .ak-delay-1 { animation-delay: 60ms; }
 .ak-delay-2 { animation-delay: 120ms; }
 .ak-delay-3 { animation-delay: 180ms; }
 .ak-delay-4 { animation-delay: 240ms; }
+
+.ak-stagger-grid > *:nth-child(1) { animation-delay: 40ms; }
+.ak-stagger-grid > *:nth-child(2) { animation-delay: 100ms; }
+.ak-stagger-grid > *:nth-child(3) { animation-delay: 160ms; }
+.ak-stagger-grid > *:nth-child(4) { animation-delay: 220ms; }
+.ak-stagger-grid > *:nth-child(n+5) { animation-delay: 260ms; }
+
+.ak-progress-bar {
+    transition: width 650ms cubic-bezier(0.22, 1, 0.36, 1);
+}
 
 .card-lift {
     transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1), border-color 200ms ease, box-shadow 220ms ease;
@@ -112,9 +152,12 @@
 @media (prefers-reduced-motion: reduce) {
     .ak-fade-up,
     .ak-fade-in,
-    .ak-scale-in {
+    .ak-scale-in,
+    .ak-pulse-dot,
+    .ak-float-slow {
         animation: none !important;
     }
+    .ak-progress-bar,
     .card-lift {
         transition: none !important;
     }

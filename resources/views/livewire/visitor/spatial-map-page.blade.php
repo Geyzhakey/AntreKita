@@ -1,5 +1,5 @@
 <div wire:poll.10s class="space-y-5">
-    <div class="flex flex-wrap items-start justify-between gap-4">
+    <div class="ak-fade-up flex flex-wrap items-start justify-between gap-4">
         <div>
             <a href="{{ route('visitor.institutions') }}" wire:navigate class="text-xs font-semibold text-[#0F6E56] hover:underline dark:text-[#90DEC3]">
                 &larr; Ganti Lokasi Instansi
@@ -52,7 +52,7 @@
     @endif
 
     <!-- Floor Switcher + Seat-Type Legend Bar (L = Leseh, S = Standar, H = Tinggi) -->
-    <div class="surface-card flex flex-wrap items-center justify-between gap-3 rounded-2xl p-3.5">
+    <div class="surface-card ak-fade-up ak-delay-1 flex flex-wrap items-center justify-between gap-3 rounded-2xl p-3.5">
         @if ($availableFloors->count() > 1)
             <div class="surface-subtle inline-flex items-center gap-1 rounded-lg p-1">
                 @foreach ($availableFloors as $fl)
@@ -101,7 +101,7 @@
     <div class="grid gap-6 lg:grid-cols-12">
         <div class="space-y-5 {{ $selectedUnit ? 'lg:col-span-8' : 'lg:col-span-12' }}">
             @if ($viewMode === 'map')
-                <section class="surface-card rounded-2xl p-5">
+                <section class="surface-card ak-fade-up ak-delay-2 rounded-2xl p-5">
                     <div class="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-[#CBE8DC] pb-3.5 dark:border-[#213531]">
                         <div class="flex flex-wrap items-center gap-2 text-xs">
                             <span class="rounded-md bg-[#90DEC3] px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#0E241E]">
@@ -193,7 +193,7 @@
         @if ($selectedUnit)
             @php $unitActive = $selectedUnit->activeBooking; @endphp
             <aside class="lg:col-span-4">
-                <div class="surface-card sticky top-20 rounded-2xl border-t-4 border-t-[#0F6E56] p-5 dark:border-t-[#90DEC3]">
+                <div class="surface-card ak-scale-in sticky top-20 rounded-2xl border-t-4 border-t-[#0F6E56] p-5 dark:border-t-[#90DEC3]">
                     <div class="flex items-start justify-between gap-2 border-b border-[#CBE8DC] pb-3.5 dark:border-[#213531]">
                         <div>
                             <div class="flex items-center gap-2">

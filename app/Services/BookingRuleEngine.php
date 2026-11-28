@@ -157,6 +157,8 @@ class BookingRuleEngine
                     return;
                 }
 
+                $locked->update(['reminder_sent_at' => $now]);
+
                 $unit = $booking->facilityUnit;
                 $activeUser = $booking->user;
                 $minutesLeft = max(1, (int) ceil($now->diffInSeconds($locked->ends_at, false) / 60));
@@ -189,8 +191,6 @@ class BookingRuleEngine
                         'message' => $waitingMsg,
                     ];
                 }
-
-                $locked->update(['reminder_sent_at' => $now]);
             });
         }
 
